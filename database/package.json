@@ -1,0 +1,5 @@
+{
+  "private": true,
+  "type": "module",
+  "description": "Migrations e seeders do Knex. Executados pelo backend (npm run migrate / npm run seed)."
+}

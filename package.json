@@ -1,0 +1,27 @@
+{
+  "name": "enterprise-erp-simulator",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ERP web próprio, para portfólio, que simula processos empresariais inspirados no SAP S/4HANA (MM e SD). Não é software SAP.",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "db:setup": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/db-setup.ps1",
+    "db:start": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/db-start.ps1",
+    "db:stop": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/db-stop.ps1",
+    "migrate": "npm run migrate -w backend",
+    "seed": "npm run seed -w backend",
+    "db:reset": "npm run db:reset -w backend",
+    "dev": "concurrently -k -n api,web -c blue,magenta \"npm run dev -w backend\" \"npm run dev -w frontend\"",
+    "test": "npm test -w backend",
+    "build": "npm run build -w frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

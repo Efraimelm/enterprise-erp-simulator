@@ -1,0 +1,19 @@
+# Segredos
+.env
+.env.*
+!.env.example
+
+# Dependências e builds
+node_modules/
+dist/
+coverage/
+
+# Banco local (binários e dados do MariaDB portátil)
+.tools/
+
+# Sistema / editores
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
