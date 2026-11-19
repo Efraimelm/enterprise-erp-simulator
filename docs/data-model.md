@@ -49,7 +49,26 @@ Todas as chaves estrangeiras usam `ON DELETE RESTRICT`: não dá para excluir um
 | `user_org_scopes` | Onde o usuário atua: `ALL`, `COMPANY` (empresa inteira) ou `PLANT` (centro) | FK para users (CASCADE), companies e plants (RESTRICT). CHECK garante que cada tipo preenche só a coluna certa |
 | `roles.is_system` | Marca as roles de sistema (somente leitura na tela) | — |
 
-Catálogo: 41 permissões e 9 roles de sistema. Ver [authorization.md](authorization.md).
+Catálogo: 42 permissões e 9 roles de sistema. Ver [authorization.md](authorization.md).
+
+### MM — `20261120_005_mm.js` (Etapa 3)
+
+| Tabela | Finalidade | Destaques |
+| --- | --- | --- |
+| `document_sequences` | Faixas de numeração | Trava por linha na transação. RC 10…, PC 45…, doc. material 49…, inventário 01… |
+| `tax_codes`, `payment_terms` | Configuração de compras (impostos simulados e prazos) | Mantidas na tela de configuração |
+| `materials` | Material (código, tipo HAWA/ROH/HIBE, unidade, preço de referência, status) | A unidade não muda depois que o material é movimentado |
+| `material_plant_data` | Dados do material por centro: depósito padrão, grupo de compradores, mínimo, ponto de reposição e máximo | Único por (material, centro). Segue o escopo do centro |
+| `suppliers` | Fornecedor fictício, condição de pagamento e tolerância de excesso (%) | Status ACTIVE/BLOCKED/INACTIVE |
+| `supplier_materials` | Registro info: preço e prazo do fornecedor por material | Único por (fornecedor, material) |
+| `stock_balances` | Saldo físico e reservado por material × depósito | `CHECK (physical_qty >= 0 AND reserved_qty >= 0)`. Só o serviço de estoque altera |
+| `stock_movements` | Linhas dos documentos de material (101, 201, 311, 561, 701, 702) | Quantidade com sinal. Referência ao documento de origem, responsável e data. O saldo é sempre a soma dos movimentos (testado) |
+| `purchase_requisitions` / `_items` | Requisição de compra | Origem MANUAL ou MRP. Item ligado ao item do pedido gerado |
+| `purchase_orders` / `_items` | Pedido de compra com totais e imposto simulado por item | Status de DRAFT a RECEIVED/CANCELLED, aprovação automática ou manual |
+| `goods_receipts` | Cabeçalho do recebimento (= documento de material) | As linhas são as próprias `stock_movements` do tipo 101 |
+| `inventory_documents` / `inventory_items` | Contagem física com saldo contábil, contado e diferença | As diferenças viram movimentos 701/702 |
+
+Quantidades usam `DECIMAL(15,3)` e valores `DECIMAL(15,2)`. Datas de negócio (entrega, necessidade) usam `DATE`, devolvido como texto `AAAA-MM-DD`.
 
 ### Sistema — `20261119_003_system_settings.js`
 
@@ -74,7 +93,6 @@ Usuários: `admin` (SAP_ADMIN) e `auditor` (AUDITOR), com escopo ALL e senha pro
 
 | Etapa | Tabelas |
 | --- | --- |
-| 3 | `materials`, `material_plant_data`, `suppliers`, `supplier_materials`, `payment_terms`, `tax_codes`, `document_sequences`, `purchase_requisitions(_items)`, `purchase_orders(_items)`, `goods_receipts(_items)`, `stock_balances`, `stock_movements`, `inventory_documents` |
 | 4 | `customers`, `product_prices`, `price_conditions`, `sales_orders(_items)`, `stock_reservations`, `deliveries`, `delivery_items`, `billing_documents`, `billing_items`, `accounts_receivable`, `payments` |
 | 5 | `document_links` (fluxo de documentos origem → destino) |
 | 6 | `integration_clients` (chaves de API, só o hash), `webhook_subscriptions`, `integration_logs`, `notifications` |

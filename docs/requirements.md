@@ -36,13 +36,13 @@ As propostas abaixo serão usadas se não houver outra orientação. Cada uma se
 | # | Ponto ambíguo | Proposta | Etapa |
 | --- | --- | --- | --- |
 | A1 | O escopo do usuário é por empresa, por centro ou por ambos? | ✅ **Decidido (19/11/2026):** por **centro**, com as opções de empresa inteira e ALL. Ver [authorization.md](authorization.md) | 2 |
-| A2 | Como simular impostos? | Tabela de **códigos de imposto** com percentuais configuráveis (ex.: ICMS 18%, IPI 5%), aplicados por item. Sem regra fiscal real | 3/4 |
-| A3 | Recebimento acima do pedido | Bloqueado por padrão. Tolerância percentual opcional **por fornecedor**, que exige a permissão `MM.GOODS_RECEIPT.OVERDELIVERY` | 3 |
+| A2 | Como simular impostos? | ✅ **Decidido (Etapa 3):** tabela de **códigos de imposto** com percentuais configuráveis, aplicados por item. Sem regra fiscal real | 3/4 |
+| A3 | Recebimento acima do pedido | ✅ **Decidido:** bloqueado por padrão. Tolerância percentual **por fornecedor**, só com a permissão `MM.GOODS_RECEIPT.OVERDELIVERY` | 3 |
 | A4 | Faturamento baseado no pedido ou na entrega? | Na **entrega** (padrão para venda de mercadoria no SAP). Fatura somente o que saiu do estoque | 4 |
-| A5 | Moedas | Uma moeda por empresa (BRL no demo). Conversão cambial fora do escopo da v1 | 3 |
-| A6 | Regras de aprovação de pedidos | Por **valor**: abaixo de um limite configurável, aprova automático. Acima, precisa de quem tem a permissão `…APPROVE` | 3/4 |
-| A7 | MRP: horizonte e tamanho de lote | Ponto de reposição + estoque mínimo, sem horizonte de datas. Lote = até o estoque máximo. Explicitamente **simplificado** | 3 |
-| A8 | Numeração de documentos | Faixas configuráveis em `document_sequences` (ex.: RC 10xxxxxxxx, PC 45xxxxxxxx, venda 0000xxxxxx), geradas dentro da transação | 3 |
+| A5 | Moedas | ✅ **Decidido:** a moeda do documento é a da empresa do centro (BRL no demo). Sem conversão cambial | 3 |
+| A6 | Regras de aprovação de pedidos | ✅ **Decidido (MM):** até o parâmetro `po_approval_limit` (R$ 1.000,00), aprovação automática. Acima, outra pessoa com `MM.PURCHASE_ORDER.APPROVE`. O SD segue a mesma ideia na Etapa 4 | 3/4 |
+| A7 | MRP: horizonte e tamanho de lote | ✅ **Decidido:** cobertura = disponível + pedidos e requisições abertos. Repõe até o máximo. Sem datas nem lead time. Explicitamente **simplificado** | 3 |
+| A8 | Numeração de documentos | ✅ **Decidido:** faixas em `document_sequences` (RC 10…, PC 45…, doc. material 49…, inventário 01…), geradas dentro da transação | 3 |
 | A9 | Como a IA respeita as permissões de quem pergunta? | O chat chama a API **com a sessão do próprio usuário**. O n8n usa uma chave de integração só de leitura e repassa a identidade do usuário. Detalhado na Etapa 6 | 6 |
 | A10 | O pedido de venda reserva estoque na criação ou na confirmação? | Na **confirmação** (como pede o cenário 5). O rascunho só consulta a disponibilidade | 4 |
 | A11 | Cancelamento de fatura | Gera um **documento de estorno** que referencia o original. Nada é apagado | 4 |

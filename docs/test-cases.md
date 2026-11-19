@@ -2,7 +2,7 @@
 
 Rodar: `npm test`. Os testes recriam o banco `erp_test` do zero e nunca tocam no `erp_dev`.
 
-## Resultado atual (19/11/2026): **78 testes, 78 aprovados**
+## Resultado atual (19/11/2026): **112 testes, 112 aprovados**
 
 | Arquivo | Testes | Etapa |
 | --- | --- | --- |
@@ -11,6 +11,28 @@ Rodar: `npm test`. Os testes recriam o banco `erp_test` do zero e nunca tocam no
 | `settings-audit.test.js` | 6 | 1 |
 | `scope.test.js` | 14 | 2 |
 | `admin.test.js` | 26 | 2 |
+| `mm.test.js` | 34 | 3 |
+
+## Etapa 3: `backend/tests/mm.test.js` (34)
+| Grupo | Casos |
+| --- | --- |
+| Cenário 1 (material) | Criar, estender para o centro e consultar com estoque e histórico. Validação de unidade e preço. Código duplicado → 409. Material bloqueado fora de novos documentos. Registro info visível no material e no fornecedor |
+| Cenário 2 (RC → PC) | Numeração 10…. Comprador e analista não aprovam (403). Gestor não aprova a própria RC (`SEGREGATION_OF_DUTIES`). Aprovar duas vezes → 409. Conversão com preço do registro info e imposto de 18% (645,00 + 116,10 = 761,10). Rejeição exige motivo e não converte |
+| Pedido | Até R$ 1.000 → aprovado automaticamente. Acima → aguardando. Criador não aprova. Outro gestor aprova e envia. Rejeitar volta a rascunho. Só rascunho é alterado. Valida o depósito do centro e o fornecedor ativo. Cancelar devolve a RC para aprovada |
+| Cenário 3 (recebimento) | Recebe 10 de 30: estoque +10, status parcial, documento 49…. Acima do pendente sem permissão → 400. Gestor dentro da tolerância de 5% → recebido. Recebido não recebe mais. Com recebimento não cancela. Rascunho não recebe |
+| Estoque | Saída maior que o disponível → 409 `INSUFFICIENT_STOCK`, sem alterar nada. Transferência 311 em duas linhas. Movimento manual exige justificativa e MM.STOCK.ADJUST. Inventário com 701/702 deixa o saldo igual à contagem |
+| Cenário 13 | Todo movimento tem documento, tipo, responsável e data. **O saldo de cada depósito é igual à soma dos movimentos** |
+| Concorrência | 10 saídas de 3 em paralelo sobre 20 → exatamente 6 aprovadas, 4 recusadas, saldo 2. 8 lançamentos paralelos → 8 números de documento diferentes |
+| MRP | Sugere 90 (máx. 100 − cobertura 10). Converte em RC de origem MRP. Rodar de novo não sugere outra vez (a RC aberta cobre). Acima do ponto não sugere. Comprador não roda o MRP |
+| Cenários 11 e 12 | Vendedor não cria PC nem RC. Almoxarife não altera material nem fornecedor. Usuário do CF10 não cria RC no CF20 nem abre PC do CF20, e as listas vêm filtradas. Dados do material no CF20 ficam ocultos e bloqueados |
+
+### Teste manual no navegador (Etapa 3)
+1. `qa.compras` (Comprador, CF10) → **Requisições → Nova**: Feijão, 150 un. → RC **1000000001**, R$ 1.110,00 (preço do registro info, R$ 7,40).
+2. `qa.gestor` (Gestor MM) → aprova → **Converter em pedido**: F0001, org. CF10, grupo 001, ICMS 18% → PC **4500000001** em rascunho, com R$ 1.110,00 + R$ 199,80 = R$ 1.309,80 e a RC ligada nos documentos relacionados.
+3. **Enviar para aprovação** → acima do limite de R$ 1.000 → a tela mostra "Aguardando outro aprovador". O criador não vê o botão Aprovar.
+4. `qa.gestor2` → **Aprovar** → "aprovado por qa.gestor2".
+5. `qa.almox` (Almoxarife) → **Registrar recebimento** de 100 de 150 → documento **4900000002**, pedido PARTIALLY_RECEIVED.
+6. **Estoque**: feijão no CF10 passou de 35 para 135. **Materiais → ALM-0002**: dados do centro só para leitura (o almoxarife não altera), estoque por depósito e registro info.
 
 ## Etapa 2
 
@@ -132,9 +154,9 @@ Rodar: `npm test`. Os testes recriam o banco `erp_test` do zero e nunca tocam no
 
 | # | Cenário | Etapa |
 | --- | --- | --- |
-| 1 | Cadastrar material e consultá-lo no MM | 3 |
-| 2 | Criar requisição, aprovar e converter em pedido | 3 |
-| 3 | Receber parcialmente e conferir o estoque | 3 |
+| 1 | Cadastrar material e consultá-lo no MM | ✅ Etapa 3 |
+| 2 | Criar requisição, aprovar e converter em pedido | ✅ Etapa 3 |
+| 3 | Receber parcialmente e conferir o estoque | ✅ Etapa 3 |
 | 4 | Pedido de venda com verificação de disponibilidade | 4 |
 | 5 | Confirmar pedido e reservar estoque | 4/5 |
 | 6 | Entrega parcial com saída | 4/5 |
@@ -144,6 +166,6 @@ Rodar: `npm test`. Os testes recriam o banco `erp_test` do zero e nunca tocam no
 | 10 | Trilha de documentos da compra à venda | 5 |
 | 11 | Operação sem permissão → acesso negado | ✅ Etapas 1 e 2 (as rotas de MM/SD ganham o mesmo teste nas Etapas 3 e 4) |
 | 12 | Centro fora do escopo → acesso negado | ✅ Etapa 2 |
-| 13 | Todo movimento de estoque com documento e responsável | 3/5 |
+| 13 | Todo movimento de estoque com documento e responsável | ✅ Etapa 3 (MM). Saídas do SD na Etapa 5 |
 | 14 | Evento recebido pelo n8n | 6 |
 | 15 | IA consulta dados e mostra a fonte | 6 |

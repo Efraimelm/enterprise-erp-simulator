@@ -130,6 +130,23 @@ export const entities = [
     sapConcept: 'Grupo de compradores: comprador ou equipe responsável por um conjunto de materiais.',
     fields: [code(3), name, { name: 'email', label: 'E-mail (fictício)', type: 'email', maxLength: 160 }],
   },
+  // Configuração de compras (Etapa 3). Também cadastros globais.
+  {
+    key: 'tax-codes',
+    table: 'tax_codes',
+    label: 'Códigos de imposto (simulado)',
+    singular: 'Código de imposto',
+    sapConcept: 'Código de IVA: percentual aplicado ao item do pedido. Simulação didática, sem regra fiscal real.',
+    fields: [code(10), name, { name: 'rate', label: 'Alíquota (%)', type: 'decimal', min: 0, max: 100, required: true }],
+  },
+  {
+    key: 'payment-terms',
+    table: 'payment_terms',
+    label: 'Condições de pagamento',
+    singular: 'Condição de pagamento',
+    sapConcept: 'Condição de pagamento: prazo em dias a partir da fatura.',
+    fields: [code(4), name, { name: 'days', label: 'Prazo (dias)', type: 'integer', min: 0, max: 365, required: true }],
+  },
 ];
 
 // Campo comum a todas: ativo/inativo (inativar em vez de excluir quando já houver uso).

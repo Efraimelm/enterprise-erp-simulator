@@ -12,9 +12,9 @@ ERP web próprio, de portfólio e para estudo, que **simula** processos empresar
 | Etapa | Conteúdo | Situação |
 | --- | --- | --- |
 | **1. Fundação** | Banco, backend, frontend, login, layout, estrutura organizacional, parâmetros e auditoria | ✅ **Concluída e testada** |
-| **2. Segurança** | Usuários, roles e permissões (41), escopo por empresa/centro, proteções contra escalada de privilégio | ✅ **Concluída e testada** |
-| 3. MM | Materiais, fornecedores, estoque, requisição, pedido, recebimento e MRP simplificado | Próxima |
-| 4. SD | Clientes, preços, pedido de venda, ATP simplificado, entrega, faturamento e títulos a receber | Planejada |
+| **2. Segurança** | Usuários, roles e permissões (42), escopo por empresa/centro, proteções contra escalada de privilégio | ✅ **Concluída e testada** |
+| **3. MM** | Materiais, fornecedores, estoque (101/201/311/561/701/702), requisição → pedido → recebimento, inventário e MRP simplificado | ✅ **Concluída e testada** |
+| 4. SD | Clientes, preços, pedido de venda, ATP simplificado, entrega, faturamento e títulos a receber | Próxima |
 | 5. MM + SD | Estoque compartilhado, reservas, saídas e trilha de documentos | Planejada |
 | 6. n8n e IA | API documentada (OpenAPI), webhooks, alertas e assistente com fonte | Planejada |
 | 7. BI | KPIs, relatórios e Power BI | Planejada |
@@ -58,6 +58,7 @@ O passo a passo completo, com os erros comuns, está em [docs/setup-windows.md](
 | [docs/architecture.md](docs/architecture.md) | Arquitetura, tecnologias escolhidas e por quê, segurança e estrutura de pastas |
 | [docs/data-model.md](docs/data-model.md) | Modelo de dados atual e planejado |
 | [docs/authorization.md](docs/authorization.md) | Roles, permissões, escopo organizacional e proteções |
+| [docs/mm-design.md](docs/mm-design.md) | Módulo MM: processo, regras de negócio, numeração, estoque e MRP |
 | [docs/api-documentation.md](docs/api-documentation.md) | Endpoints da API |
 | [docs/test-cases.md](docs/test-cases.md) | Casos de teste e cenários de aceitação |
 | [docs/setup-windows.md](docs/setup-windows.md) | Instalação e execução no Windows |

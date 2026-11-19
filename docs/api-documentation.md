@@ -86,3 +86,48 @@ As listas trazem só o que está no escopo do usuário. Abrir ou alterar um regi
 | Método | Rota | Permissão | Descrição |
 | --- | --- | --- | --- |
 | GET | `/audit` | ADMIN.AUDIT.READ | Filtros: `username`, `action`, `entity`, `result`, `from`, `to`, `page`, `pageSize` |
+
+## MM (Etapa 3)
+
+Regras de negócio em [mm-design.md](mm-design.md). Todos os documentos seguem o escopo do centro (403 `OUT_OF_SCOPE`). Erros de MM: 409 `INVALID_STATUS` (transição não permitida), 409 `INSUFFICIENT_STOCK`, 403 `SEGREGATION_OF_DUTIES` (aprovar o que você mesmo criou), 409 `HAS_RECEIPTS` (cancelar pedido já recebido).
+
+### Cadastros
+| Método | Rota | Permissão | Descrição |
+| --- | --- | --- | --- |
+| GET | `/mm/materials` | MM.MATERIAL.READ | Filtros: `q`, `status`, `type`, `plant_id` |
+| GET | `/mm/materials/:id` | MM.MATERIAL.READ | Com `plants[]`, `stock[]`, `suppliers[]` e `history[]` |
+| POST / PUT | `/mm/materials`, `/mm/materials/:id` | MM.MATERIAL.CREATE / UPDATE | `{ code, description, material_type: HAWA\|ROH\|HIBE, category?, base_unit, reference_price }` |
+| POST | `/mm/materials/:id/status` | MM.MATERIAL.UPDATE | `{ status, reason }` |
+| PUT | `/mm/materials/:id/plants/:plantId` | MM.MATERIAL.UPDATE + escopo | `{ default_storage_location_id?, purchasing_group_id?, min_stock, reorder_point, max_stock }` |
+| GET | `/mm/suppliers`, `/mm/suppliers/:id` | MM.SUPPLIER.READ | O detalhe traz `materials[]` (registros info), `orders[]` e `history[]` |
+| POST / PUT | `/mm/suppliers`, `/mm/suppliers/:id` | MM.SUPPLIER.CREATE / UPDATE | Dados fictícios + `payment_term_id`, `overdelivery_tolerance_pct` |
+| POST | `/mm/suppliers/:id/status` | MM.SUPPLIER.UPDATE | `{ status, reason }` |
+| PUT / DELETE | `/mm/suppliers/:id/materials/:materialId` | MM.SUPPLIER.UPDATE | Registro info `{ net_price, lead_time_days, supplier_material_code? }` |
+
+### Estoque
+| Método | Rota | Permissão | Descrição |
+| --- | --- | --- | --- |
+| GET | `/mm/stock` | MM.STOCK.READ | Saldos com `physical_qty`, `reserved_qty` e `available_qty`. Filtros: `q`, `plant_id`, `storage_location_id`, `material_id`, `below_reorder=true` |
+| GET | `/mm/stock/movements` | MM.STOCK.READ | Filtros: `material_id`, `plant_id`, `movement_type`, `doc_number`, `reference_type`, `reference_id` |
+| GET | `/mm/material-documents/:number` | MM.STOCK.READ | Documento de material com as linhas |
+| POST | `/mm/stock/movements` | MM.STOCK.ADJUST | `{ movement_type: "561"\|"201", material_id, plant_id, storage_location_id, quantity, reason }` ou `311` com `to_storage_location_id` |
+| GET | `/mm/inventory`, `/mm/inventory/:id` | MM.STOCK.READ | Documentos de inventário |
+| POST | `/mm/inventory` | MM.STOCK.ADJUST | `{ plant_id, storage_location_id, reason, items: [{ material_id, counted_qty }] }` → diferenças em 701/702 |
+
+### Compras
+| Método | Rota | Permissão | Descrição |
+| --- | --- | --- | --- |
+| GET | `/mm/purchase-requisitions[/:id]` | MM.PURCHASE_REQ.READ | Filtros: `status`, `plant_id`, `source`, `mine`, `q` |
+| POST | `/mm/purchase-requisitions` | MM.PURCHASE_REQ.CREATE | `{ plant_id, justification, items: [{ material_id, quantity, storage_location_id?, need_date }] }` |
+| POST | `/mm/purchase-requisitions/:id/approve` | MM.PURCHASE_REQ.APPROVE | O solicitante não pode aprovar |
+| POST | `/mm/purchase-requisitions/:id/reject` / `cancel` | APPROVE / solicitante | `{ reason }` |
+| GET | `/mm/purchase-orders[/:id]` | MM.PURCHASE_ORDER.READ | Filtros: `status`, `plant_id`, `supplier_id`, `q`, `open_for_receipt`. O detalhe traz `items[]` com `open_qty`, `requisitions[]`, `receipts[]` e `history[]` |
+| POST | `/mm/purchase-orders` | MM.PURCHASE_ORDER.CREATE | `{ supplier_id, purchasing_organization_id, purchasing_group_id?, plant_id, payment_term_id?, delivery_date, notes?, items: [{ material_id, quantity, unit_price?, tax_code_id?, storage_location_id? }] }` |
+| POST | `/mm/purchase-orders/from-requisition` | MM.PURCHASE_ORDER.CREATE | `{ requisition_id, supplier_id, purchasing_organization_id, purchasing_group_id?, tax_code_id?, delivery_date? }` |
+| PUT | `/mm/purchase-orders/:id` | MM.PURCHASE_ORDER.CREATE | Só em rascunho |
+| POST | `/mm/purchase-orders/:id/submit` · `send` | MM.PURCHASE_ORDER.CREATE | Envia para aprovação (automática até o limite) · envio simulado |
+| POST | `/mm/purchase-orders/:id/approve` · `reject` · `cancel` | MM.PURCHASE_ORDER.APPROVE | Quem criou não aprova. `reject` e `cancel` exigem `{ reason }` |
+| GET | `/mm/goods-receipts[/:id]` | MM.STOCK.READ ou MM.PURCHASE_ORDER.READ | Recebimentos |
+| POST | `/mm/goods-receipts` | MM.GOODS_RECEIPT.POST | `{ purchase_order_id, notes?, items: [{ purchase_order_item_id, quantity, storage_location_id? }] }` |
+| POST | `/mm/mrp/run` | MM.MRP.RUN | `{ plant_id? }` → sugestões com cobertura e melhor fornecedor |
+| POST | `/mm/mrp/convert` | MM.MRP.RUN + MM.PURCHASE_REQ.CREATE | `{ items: [{ material_id, plant_id, quantity }] }` → requisições de origem MRP |

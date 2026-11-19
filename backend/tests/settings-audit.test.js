@@ -12,11 +12,11 @@ beforeAll(async () => {
 afterAll(() => db.destroy());
 
 describe('parâmetros gerais', () => {
-  it('lista os 5 parâmetros iniciais', async () => {
+  it('lista os 6 parâmetros iniciais', async () => {
     const res = await auditor.get('/api/settings');
     expect(res.status).toBe(200);
     expect(res.body.data.map((s) => s.setting_key)).toEqual([
-      'date_format', 'default_currency', 'default_language', 'default_timezone', 'number_locale',
+      'date_format', 'default_currency', 'default_language', 'default_timezone', 'number_locale', 'po_approval_limit',
     ]);
   });
 

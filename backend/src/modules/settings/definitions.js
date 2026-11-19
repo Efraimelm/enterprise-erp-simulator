@@ -22,6 +22,10 @@ export const settingDefinitions = {
     options: ['dd/MM/yyyy', 'yyyy-MM-dd', 'MM/dd/yyyy'],
     schema: z.enum(['dd/MM/yyyy', 'yyyy-MM-dd', 'MM/dd/yyyy'], { message: 'Formato não suportado.' }),
   },
+  po_approval_limit: {
+    label: 'Limite de aprovação automática de pedidos de compra',
+    schema: z.string().regex(/^\d{1,10}(\.\d{1,2})?$/, 'Informe um valor com ponto decimal, ex.: 1000.00'),
+  },
   number_locale: {
     label: 'Formato de números',
     options: ['pt-BR', 'en-US'],

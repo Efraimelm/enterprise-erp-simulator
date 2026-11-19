@@ -28,7 +28,7 @@ export default function Shell() {
           <div key={g.group} className="sidenav-group">
             <div className="sidenav-group-title">{g.group}</div>
             {g.items.map((item) =>
-              item.path && (!item.permission || can(item.permission)) ? (
+              item.path && (item.anyOf ? item.anyOf.some(can) : !item.permission || can(item.permission)) ? (
                 <NavLink key={item.label} to={item.path} end={item.path === '/'} className="sidenav-item" onClick={() => setMenuOpen(false)}>
                   {item.label}
                 </NavLink>

@@ -38,10 +38,10 @@ describe('estrutura organizacional: dados de demonstração', () => {
     expect(plants.body.data.map((p) => p.code)).toEqual(expect.arrayContaining(['CF10', 'CF20']));
   });
 
-  it('/meta descreve as 10 entidades e seus campos', async () => {
+  it('/meta descreve as 12 entidades e seus campos', async () => {
     const res = await admin.get('/api/org/meta');
     expect(res.status).toBe(200);
-    expect(res.body.data).toHaveLength(10);
+    expect(res.body.data).toHaveLength(12);
     expect(res.body.data.find((e) => e.key === 'plants').fields.find((f) => f.name === 'company_id')).toMatchObject({ type: 'ref', ref: 'companies' });
   });
 });

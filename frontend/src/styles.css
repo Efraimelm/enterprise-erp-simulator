@@ -167,6 +167,32 @@ legend { font-size: 13px; color: var(--muted); padding: 0 4px; }
 .perm-check { display: inline-flex; align-items: center; gap: 4px; text-decoration: none; color: var(--text); cursor: pointer; }
 .perm-check input { min-height: auto; }
 
+/* MM */
+.field label { display: flex; flex-direction: column; gap: 4px; }
+.field label > input, .field label > select { color: var(--text); font-size: 14px; }
+.field-button { justify-content: flex-end; }
+.form-grid.compact { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); }
+.subcard { border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; margin-bottom: 8px; }
+.input-qty { width: 110px; }
+.min-w select { min-width: 220px; }
+.items-editor { margin: 8px 0; }
+.items-editor td { vertical-align: middle; }
+.right { text-align: right; }
+.neg { color: var(--bad); font-weight: 600; }
+.pos { color: var(--ok); font-weight: 600; }
+tr.row-warn td { background: var(--warn-bg); }
+.alert.warn-box { background: var(--warn-bg); color: var(--warn); }
+.link { background: none; border: 0; padding: 0; color: var(--primary); cursor: pointer; text-decoration: underline; font: inherit; }
+.doc-flow { list-style: none; padding-left: 0; margin: 0; border-left: 3px solid var(--primary); }
+.doc-flow li { padding: 4px 12px; position: relative; }
+.doc-flow li::before { content: ''; position: absolute; left: -7px; top: 11px; width: 11px; height: 11px; border-radius: 50%; background: var(--primary); }
+.history { margin-top: 16px; }
+.history summary { cursor: pointer; color: var(--primary); font-weight: 600; }
+.tabs { display: flex; gap: 4px; align-items: center; border-bottom: 1px solid var(--border); margin-bottom: 12px; flex-wrap: wrap; }
+.tab { background: none; border: 0; border-bottom: 3px solid transparent; padding: 8px 14px; cursor: pointer; font: inherit; color: var(--muted); }
+.tab.active { border-bottom-color: var(--primary); color: var(--primary); font-weight: 600; }
+.toolbar .field { margin-bottom: 0; }
+
 /* Login */
 .login-page { min-height: 100vh; display: grid; place-items: center; padding: 16px; background: linear-gradient(160deg, #354a5f 0%, #1d2d3e 100%); }
 .login-card { background: var(--surface); width: min(400px, 100%); padding: 28px; border-radius: 12px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3); }

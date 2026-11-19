@@ -34,6 +34,7 @@ export const PERMISSIONS = [
   ['MM.PURCHASE_ORDER.CREATE', 'MM', 'Criar e alterar pedidos de compra'],
   ['MM.PURCHASE_ORDER.APPROVE', 'MM', 'Aprovar, rejeitar ou cancelar pedidos de compra'],
   ['MM.GOODS_RECEIPT.POST', 'MM', 'Registrar recebimento de mercadorias'],
+  ['MM.GOODS_RECEIPT.OVERDELIVERY', 'MM', 'Receber acima do pedido, até a tolerância do fornecedor'],
   ['MM.STOCK.READ', 'MM', 'Consultar estoque e movimentações'],
   ['MM.STOCK.ADJUST', 'MM', 'Ajustar estoque e lançar inventário (com justificativa)'],
   ['MM.MRP.RUN', 'MM', 'Executar o MRP simplificado e converter sugestões'],

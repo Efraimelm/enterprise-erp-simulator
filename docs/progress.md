@@ -2,7 +2,36 @@
 
 Atualizado a cada etapa. Serve para continuar o projeto em uma nova conversa sem perder o contexto.
 
-## Estado atual: Etapa 2 concluída (19/11/2026)
+## Estado atual: Etapa 3 concluída (19/11/2026)
+
+### Etapa 3: MM (implementado)
+- Desenho em [mm-design.md](mm-design.md), escrito antes do código.
+- Migration `005_mm`, com 17 tabelas, e seed de demonstração: 6 materiais em 2 centros, 3 fornecedores com registros info, códigos de imposto, condições de pagamento e estoque inicial lançado pelo **documento 561**.
+- **Serviço de estoque único** (`stock-service.js`): todo saldo muda por documento de material.
+  - Trava a linha com `FOR UPDATE`, sempre em ordem fixa.
+  - `CHECK` de saldo não negativo.
+  - Repete automaticamente em caso de deadlock.
+- Numeração em transação (`document_sequences`).
+- Materiais (dados por centro, status, histórico), fornecedores (registros info, histórico de compras), estoque (saldos, movimentos, documento de material, movimentos manuais 561/201/311, inventário 701/702).
+- Requisição → aprovação → pedido, com:
+  - aprovação automática até o limite e manual acima dele;
+  - separação de funções;
+  - envio simulado;
+  - cancelamento que devolve a requisição;
+  - recebimento parcial com tolerância de excesso.
+- MRP simplificado com aprovação humana: as sugestões viram requisições de origem MRP.
+- 7 telas novas e indicadores de compras no painel.
+- 34 testes novos (112 no total), inclusive de **concorrência** e da regra **saldo = soma dos movimentos**. Teste manual do ciclo completo no navegador com 4 perfis.
+
+### Decisões da Etapa 3
+| # | Decisão | Motivo |
+| --- | --- | --- |
+| D16 | Um único serviço altera o estoque. Os outros módulos só chamam `postMaterialDocument` | Garante documento, trava e regra de saldo em um só lugar. O SD vai reutilizar |
+| D17 | Os itens do recebimento são as próprias linhas de `stock_movements` | Evita duplicar dados (a especificação pede para não duplicar) |
+| D18 | Documento de pedido só é editado em rascunho. Rejeição volta para rascunho | Ciclo simples e auditável |
+| D19 | O MRP considera pedidos em qualquer status aberto, inclusive rascunho | Evita sugerir de novo o que já está sendo comprado |
+| D20 | Inventário em um passo (contagem e lançamento) | Simplificação didática. O SAP separa em MI01/MI04/MI07 |
+| D21 | Material e fornecedor são globais. Dados por centro e documentos seguem o escopo do centro | Igual à separação entre dados gerais e dados de centro do SAP |
 
 ### Etapa 2: Segurança (implementado)
 - Migration `004_org_scopes`: escopo por usuário (`ALL`, `COMPANY` ou `PLANT`) e roles de sistema (`is_system`).
@@ -78,18 +107,18 @@ Atualizado a cada etapa. Serve para continuar o projeto em uma nova conversa sem
 
 ## Pendências e próximos passos
 
-**Etapa 3: MM** (próxima). Antes de codificar, apresentar os requisitos, o fluxo, as entidades, as telas e os critérios de aceitação. Confirmar as ambiguidades A2 (impostos), A3 (excesso no recebimento), A5 (moeda), A6 (aprovação por valor), A7 (MRP) e A8 (numeração) em [requirements.md](requirements.md).
+**Etapa 4: SD** (próxima). Antes de codificar, escrever `docs/sd-design.md` (requisitos, fluxo, entidades, telas, critérios). Decisões a confirmar:
+- A4: faturar pela entrega.
+- A10: reservar na confirmação.
+- A11: estorno de fatura por documento.
+- A6 no SD: limite de aprovação de pedido de venda.
 
-Ordem proposta:
-1. `document_sequences` e numeração.
-2. Materiais e dados por centro.
-3. Fornecedores.
-4. Saldo e movimentos de estoque, com `FOR UPDATE` e teste de concorrência.
-5. Requisição → aprovação → pedido.
-6. Recebimento total ou parcial.
-7. MRP simplificado.
-
-Os testes de rota do cenário 11 (vendedor tentando criar pedido de compra etc.) entram junto com cada rota.
+O que o SD vai reaproveitar do MM:
+- `materials`;
+- `stock_balances.reserved_qty`, já pronto para as reservas do ATP;
+- o serviço de estoque `postMaterialDocument`, com novos tipos de saída (601 – saída para cliente);
+- `document_sequences`, com novas faixas.
 
 Pendências menores:
+- O redirecionamento para o login, visto uma vez no teste manual, veio de um logout feito por script durante a navegação. Não se repetiu.
 - Os checkboxes de roles e escopo têm o rótulo certo na tela, mas os leitores de tela anunciam só "on". Melhorar na Etapa 8 (acessibilidade).

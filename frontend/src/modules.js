@@ -18,13 +18,13 @@ export const navigation = [
   {
     group: 'MM · Materiais',
     items: [
-      { label: 'Materiais', stage: 3 },
-      { label: 'Fornecedores', stage: 3 },
-      { label: 'Estoque', stage: 3 },
-      { label: 'Requisições de compra', stage: 3 },
-      { label: 'Pedidos de compra', stage: 3 },
-      { label: 'Recebimentos', stage: 3 },
-      { label: 'MRP simplificado', stage: 3 },
+      { label: 'Materiais', path: '/mm/materiais', permission: 'MM.MATERIAL.READ' },
+      { label: 'Fornecedores', path: '/mm/fornecedores', permission: 'MM.SUPPLIER.READ' },
+      { label: 'Estoque', path: '/mm/estoque', permission: 'MM.STOCK.READ' },
+      { label: 'Requisições de compra', path: '/mm/requisicoes', permission: 'MM.PURCHASE_REQ.READ' },
+      { label: 'Pedidos de compra', path: '/mm/pedidos', permission: 'MM.PURCHASE_ORDER.READ' },
+      { label: 'Recebimentos', path: '/mm/recebimentos', permission: 'MM.PURCHASE_ORDER.READ', anyOf: ['MM.STOCK.READ', 'MM.PURCHASE_ORDER.READ'] },
+      { label: 'MRP simplificado', path: '/mm/mrp', permission: 'MM.MRP.RUN' },
     ],
   },
   {
@@ -51,8 +51,8 @@ export const navigation = [
 export const roadmap = [
   { stage: 1, title: 'Fundação', detail: 'Banco, backend, frontend, login, layout e estrutura organizacional', status: 'done' },
   { stage: 2, title: 'Segurança', detail: 'Usuários, roles, permissões, escopo por centro e testes de acesso', status: 'done' },
-  { stage: 3, title: 'MM', detail: 'Materiais, fornecedores, estoque, requisição, pedido, recebimento e MRP', status: 'next' },
-  { stage: 4, title: 'SD', detail: 'Clientes, preços, pedido de venda, ATP, entrega, faturamento e recebimento', status: 'planned' },
+  { stage: 3, title: 'MM', detail: 'Materiais, fornecedores, estoque, requisição, pedido, recebimento e MRP', status: 'done' },
+  { stage: 4, title: 'SD', detail: 'Clientes, preços, pedido de venda, ATP, entrega, faturamento e recebimento', status: 'next' },
   { stage: 5, title: 'Integração MM + SD', detail: 'Estoque compartilhado, reservas, saídas e trilha de documentos', status: 'planned' },
   { stage: 6, title: 'n8n e IA', detail: 'API documentada, webhooks, alertas e assistente com fonte', status: 'planned' },
   { stage: 7, title: 'BI', detail: 'Indicadores, relatórios e Power BI', status: 'planned' },

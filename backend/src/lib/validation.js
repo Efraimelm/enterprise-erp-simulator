@@ -29,6 +29,10 @@ function baseSchema(f) {
       return str().toUpperCase().refine((uf) => UF.has(uf), 'UF inválida. Ex.: SP.');
     case 'ref':
       return z.coerce.number({ invalid_type_error: 'Selecione um registro.' }).int().positive('Selecione um registro.');
+    case 'decimal':
+      return z.coerce.number({ invalid_type_error: 'Informe um número.' }).min(f.min ?? 0, `Mínimo ${f.min ?? 0}.`).max(f.max ?? 1e12, `Máximo ${f.max}.`);
+    case 'integer':
+      return z.coerce.number({ invalid_type_error: 'Informe um número inteiro.' }).int('Informe um número inteiro.').min(f.min ?? 0, `Mínimo ${f.min ?? 0}.`).max(f.max ?? 1e9, `Máximo ${f.max}.`);
     case 'boolean':
       return z.boolean({ invalid_type_error: 'Deve ser verdadeiro ou falso.' });
     default:

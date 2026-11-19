@@ -8,6 +8,7 @@ export async function seed(knex) {
       { setting_key: 'default_currency', value: 'BRL', description: 'Moeda padrão de novos documentos' },
       { setting_key: 'date_format', value: 'dd/MM/yyyy', description: 'Formato de exibição das datas' },
       { setting_key: 'number_locale', value: 'pt-BR', description: 'Separador decimal e de milhar' },
+      { setting_key: 'po_approval_limit', value: '1000.00', description: 'Pedidos de compra com total bruto até este valor são aprovados automaticamente' },
     ])
     .onConflict('setting_key')
     .ignore();

@@ -9,6 +9,13 @@ import Settings from './pages/Settings.jsx';
 import Audit from './pages/Audit.jsx';
 import Users from './pages/Users.jsx';
 import Roles from './pages/Roles.jsx';
+import Materials from './pages/mm/Materials.jsx';
+import Suppliers from './pages/mm/Suppliers.jsx';
+import Stock from './pages/mm/Stock.jsx';
+import Requisitions from './pages/mm/Requisitions.jsx';
+import PurchaseOrders from './pages/mm/PurchaseOrders.jsx';
+import GoodsReceipts from './pages/mm/GoodsReceipts.jsx';
+import Mrp from './pages/mm/Mrp.jsx';
 
 function RequireAuth({ children }) {
   const { user, loading } = useAuth();
@@ -31,6 +38,13 @@ export default function App() {
         <Route path="admin/auditoria" element={<Audit />} />
         <Route path="admin/usuarios" element={<Users />} />
         <Route path="admin/roles" element={<Roles />} />
+        <Route path="mm/materiais" element={<Materials />} />
+        <Route path="mm/fornecedores" element={<Suppliers />} />
+        <Route path="mm/estoque" element={<Stock />} />
+        <Route path="mm/requisicoes" element={<Requisitions />} />
+        <Route path="mm/pedidos" element={<PurchaseOrders />} />
+        <Route path="mm/recebimentos" element={<GoodsReceipts />} />
+        <Route path="mm/mrp" element={<Mrp />} />
         <Route path="*" element={<div className="empty">Página não encontrada.</div>} />
       </Route>
     </Routes>

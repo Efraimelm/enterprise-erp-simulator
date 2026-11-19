@@ -15,6 +15,10 @@ export const knexConfig = {
     timezone: 'Z',
     charset: 'utf8mb4',
     decimalNumbers: true,
+    // Colunas DATE (ex.: data de entrega) chegam como texto 'AAAA-MM-DD', sem conversão de fuso.
+    typeCast(field, next) {
+      return field.type === 'DATE' ? field.string() : next();
+    },
   },
   pool: {
     min: 0,
