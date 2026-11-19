@@ -2,9 +2,39 @@
 
 Atualizado a cada etapa. Serve para continuar o projeto em uma nova conversa sem perder o contexto.
 
-## Estado atual: Etapa 1 concluída (19/11/2026)
+## Estado atual: Etapa 2 concluída (19/11/2026)
 
-### Implementado
+### Etapa 2: Segurança (implementado)
+- Migration `004_org_scopes`: escopo por usuário (`ALL`, `COMPANY` ou `PLANT`) e roles de sistema (`is_system`).
+- Catálogo com 41 permissões (ADMIN, MM e SD) e 9 roles de sistema, com separação de funções. Ver [authorization.md](authorization.md).
+- O escopo é aplicado em toda a estrutura organizacional:
+  - as listas vêm filtradas;
+  - abrir ou alterar um registro fora do escopo responde 403 `OUT_OF_SCOPE`, com registro na auditoria.
+- API e telas de **Usuários**:
+  - criar com senha provisória, que aparece uma vez;
+  - editar, bloquear, inativar e reativar, sempre com motivo;
+  - redefinir a senha;
+  - definir roles e escopo.
+- API e telas de **Roles e permissões**:
+  - matriz de permissões por módulo;
+  - roles personalizadas `Z_` (criar, alterar e excluir).
+- Proteções:
+  - ninguém altera a si mesmo;
+  - ninguém concede o que não tem;
+  - o sistema sempre mantém um SAP_ADMIN ativo;
+  - bloquear ou redefinir a senha derruba as sessões.
+- 40 testes novos (total de 78, todos aprovados) e teste manual no navegador.
+
+### Decisões da Etapa 2
+| # | Decisão | Motivo |
+| --- | --- | --- |
+| D11 | Escopo por **centro**, com a opção de empresa inteira ou ALL (ambiguidade A1 confirmada) | O centro é onde o estoque e os documentos de MM/SD existem |
+| D12 | Roles de sistema somente leitura, sincronizadas pelo seed. Roles próprias com o prefixo `Z_` | Evita divergência entre ambientes e segue a convenção SAP |
+| D13 | Permissões de MM/SD criadas já na Etapa 2 | As roles ficam completas e as próximas etapas só ligam as rotas |
+| D14 | Senha provisória gerada pelo sistema e mostrada uma vez | O administrador nunca escolhe nem guarda a senha de outra pessoa |
+| D15 | A gestão de usuários é global (não depende de escopo), mas a concessão de escopo é limitada ao escopo de quem concede | Simples e sem escalada de privilégio |
+
+## Etapa 1: Fundação (implementado)
 - Banco MariaDB portátil com scripts de setup, start e stop. Bancos `erp_dev` e `erp_test`.
 - 3 migrations: segurança (usuários, roles, permissões, sessões, auditoria), estrutura organizacional (10 tabelas) e parâmetros.
 - Seeds idempotentes: 7 permissões, 2 roles, usuários admin e auditor e a empresa Comércio Forte Ltda.
@@ -30,9 +60,6 @@ Atualizado a cada etapa. Serve para continuar o projeto em uma nova conversa sem
 ### Simulado (por definição do projeto)
 - Toda a estrutura organizacional é fictícia. Os conceitos seguem o SAP S/4HANA, mas sem nenhuma integração SAP.
 
-### Adiantado da Etapa 2 (base mínima para proteger a Etapa 1)
-- As tabelas `roles`, `permissions`, `role_permissions` e `user_roles`, o middleware `requirePermission` e a consulta da auditoria.
-- **Falta na Etapa 2:** as telas de usuários e roles, o escopo organizacional e o catálogo completo de roles e permissões.
 
 ## Decisões técnicas
 
@@ -51,12 +78,18 @@ Atualizado a cada etapa. Serve para continuar o projeto em uma nova conversa sem
 
 ## Pendências e próximos passos
 
-**Etapa 2: Segurança** (próxima)
-1. Telas de usuários: criar, editar, bloquear, desbloquear, inativar e redefinir a senha (gera senha provisória).
-2. Telas de roles e permissões, e atribuição de roles a usuários.
-3. `user_org_scopes`: escopo por centro e empresa, aplicado nas consultas.
-4. Catálogo completo de roles (MM_MANAGER, MM_ANALYST, SD_MANAGER, SD_ANALYST, PROCUREMENT, SALES, WAREHOUSE) e das permissões de MM e SD.
-5. Testes de autorização da especificação (vendedor criando pedido de compra, depósito alterando cliente, centro fora do escopo…).
-6. Confirmar as ambiguidades A1 (escopo) em [requirements.md](requirements.md).
+**Etapa 3: MM** (próxima). Antes de codificar, apresentar os requisitos, o fluxo, as entidades, as telas e os critérios de aceitação. Confirmar as ambiguidades A2 (impostos), A3 (excesso no recebimento), A5 (moeda), A6 (aprovação por valor), A7 (MRP) e A8 (numeração) em [requirements.md](requirements.md).
 
-Depois: Etapa 3 (MM). Antes de codificar, apresentar os requisitos, o fluxo, as entidades, as telas e os critérios de aceitação. Confirmar A2, A3, A5, A6, A7 e A8.
+Ordem proposta:
+1. `document_sequences` e numeração.
+2. Materiais e dados por centro.
+3. Fornecedores.
+4. Saldo e movimentos de estoque, com `FOR UPDATE` e teste de concorrência.
+5. Requisição → aprovação → pedido.
+6. Recebimento total ou parcial.
+7. MRP simplificado.
+
+Os testes de rota do cenário 11 (vendedor tentando criar pedido de compra etc.) entram junto com cada rota.
+
+Pendências menores:
+- Os checkboxes de roles e escopo têm o rótulo certo na tela, mas os leitores de tela anunciam só "on". Melhorar na Etapa 8 (acessibilidade).

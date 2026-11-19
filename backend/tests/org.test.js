@@ -34,7 +34,8 @@ describe('estrutura organizacional: dados de demonstração', () => {
     const cf01 = companies.body.data.find((c) => c.code === 'CF01');
     expect(cf01).toMatchObject({ code: 'CF01', currency: 'BRL', is_active: true });
     const plants = await admin.get(`/api/org/plants?company_id=${cf01.id}`);
-    expect(plants.body.data.map((p) => p.code)).toEqual(['CF10', 'CF20']);
+    // Outros arquivos de teste podem ter criado centros na CF01: confere que os do seed estão lá.
+    expect(plants.body.data.map((p) => p.code)).toEqual(expect.arrayContaining(['CF10', 'CF20']));
   });
 
   it('/meta descreve as 10 entidades e seus campos', async () => {

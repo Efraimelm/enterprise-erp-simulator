@@ -35,7 +35,7 @@ As propostas abaixo serão usadas se não houver outra orientação. Cada uma se
 
 | # | Ponto ambíguo | Proposta | Etapa |
 | --- | --- | --- | --- |
-| A1 | O escopo do usuário é por empresa, por centro ou por ambos? | Por **centro**. A empresa é deduzida do centro. Um escopo "todos os centros da empresa X" atende os gestores | 2 |
+| A1 | O escopo do usuário é por empresa, por centro ou por ambos? | ✅ **Decidido (19/11/2026):** por **centro**, com as opções de empresa inteira e ALL. Ver [authorization.md](authorization.md) | 2 |
 | A2 | Como simular impostos? | Tabela de **códigos de imposto** com percentuais configuráveis (ex.: ICMS 18%, IPI 5%), aplicados por item. Sem regra fiscal real | 3/4 |
 | A3 | Recebimento acima do pedido | Bloqueado por padrão. Tolerância percentual opcional **por fornecedor**, que exige a permissão `MM.GOODS_RECEIPT.OVERDELIVERY` | 3 |
 | A4 | Faturamento baseado no pedido ou na entrega? | Na **entrega** (padrão para venda de mercadoria no SAP). Fatura somente o que saiu do estoque | 4 |

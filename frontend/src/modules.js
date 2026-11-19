@@ -10,8 +10,9 @@ export const navigation = [
     items: [
       { label: 'Estrutura organizacional', path: '/admin/estrutura', icon: '▦', permission: 'ADMIN.ORG.READ' },
       { label: 'Parâmetros gerais', path: '/admin/parametros', icon: '⚙', permission: 'ADMIN.SETTINGS.READ' },
+      { label: 'Usuários', path: '/admin/usuarios', permission: 'ADMIN.USER.READ' },
+      { label: 'Roles e permissões', path: '/admin/roles', permission: 'ADMIN.ROLE.READ' },
       { label: 'Auditoria', path: '/admin/auditoria', icon: '⎙', permission: 'ADMIN.AUDIT.READ' },
-      { label: 'Usuários e roles', stage: 2, icon: '☺' },
     ],
   },
   {
@@ -49,8 +50,8 @@ export const navigation = [
 
 export const roadmap = [
   { stage: 1, title: 'Fundação', detail: 'Banco, backend, frontend, login, layout e estrutura organizacional', status: 'done' },
-  { stage: 2, title: 'Segurança', detail: 'Usuários, roles, permissões, escopo por centro e testes de acesso', status: 'next' },
-  { stage: 3, title: 'MM', detail: 'Materiais, fornecedores, estoque, requisição, pedido, recebimento e MRP', status: 'planned' },
+  { stage: 2, title: 'Segurança', detail: 'Usuários, roles, permissões, escopo por centro e testes de acesso', status: 'done' },
+  { stage: 3, title: 'MM', detail: 'Materiais, fornecedores, estoque, requisição, pedido, recebimento e MRP', status: 'next' },
   { stage: 4, title: 'SD', detail: 'Clientes, preços, pedido de venda, ATP, entrega, faturamento e recebimento', status: 'planned' },
   { stage: 5, title: 'Integração MM + SD', detail: 'Estoque compartilhado, reservas, saídas e trilha de documentos', status: 'planned' },
   { stage: 6, title: 'n8n e IA', detail: 'API documentada, webhooks, alertas e assistente com fonte', status: 'planned' },

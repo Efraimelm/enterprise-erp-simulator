@@ -12,6 +12,8 @@ import { authRouter } from './modules/auth/routes.js';
 import { orgRouter } from './modules/org/routes.js';
 import { settingsRouter } from './modules/settings/routes.js';
 import { auditRouter } from './modules/audit/routes.js';
+import { usersRouter } from './modules/admin/users.js';
+import { rolesRouter } from './modules/admin/roles.js';
 
 export function createApp({ loginRateLimit = config.login.rateLimit } = {}) {
   const app = express();
@@ -33,6 +35,8 @@ export function createApp({ loginRateLimit = config.login.rateLimit } = {}) {
   app.use('/api/org', orgRouter);
   app.use('/api/settings', settingsRouter);
   app.use('/api/audit', auditRouter);
+  app.use('/api/admin/users', usersRouter);
+  app.use('/api/admin', rolesRouter);
 
   app.use('/api', (req, res) => res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Rota não encontrada.' } }));
   app.use(errorHandler);

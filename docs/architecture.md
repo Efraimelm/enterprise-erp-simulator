@@ -43,6 +43,8 @@ Um **monólito modular**: um backend e um banco, com o código dividido por mód
 | CSRF | `SameSite=Strict` + cabeçalho `X-ERP-Client` obrigatório em escrita + checagem de `Origin` |
 | SQL injection | Knex com parâmetros (nunca concatenação). Colunas de ordenação vêm de uma lista permitida |
 | Acesso sem permissão | `requirePermission` no backend em toda rota. A negação é registrada na auditoria |
+| Acesso a outro centro/empresa | Escopo organizacional aplicado nas consultas e nas escritas (403 `OUT_OF_SCOPE`). Ver [authorization.md](authorization.md) |
+| Escalada de privilégio | Ninguém concede role ou escopo além do que tem, nem altera a si mesmo. O sistema sempre mantém um SAP_ADMIN ativo |
 | Senha provisória | `must_change_password` bloqueia tudo até a troca. A política exige 12 caracteres e 3 tipos de caractere |
 | Segredos no Git | `.env` ignorado no Git. O setup gera senhas aleatórias. Logs e auditoria mascaram campos `password`, `token`, `secret` e `cookie` |
 
@@ -65,14 +67,14 @@ enterprise-erp-simulator/
 │   │   ├── db.js           conexão Knex
 │   │   ├── lib/            senha, auditoria, logger, erros, validação
 │   │   ├── middleware/     sessão/permissão, CSRF, tratamento de erros
-│   │   ├── modules/        auth, org, settings, audit  (depois: mm, sd, integration)
+│   │   ├── modules/        auth, org (+ scope-rules), settings, audit, admin (users, roles)  (depois: mm, sd, integration)
 │   │   └── scripts/        migrate.js, seed.js
 │   └── tests/              testes de API (Vitest + Supertest)
 ├── frontend/
 │   └── src/
 │       ├── api.js, auth.jsx, modules.js
 │       ├── components/     Shell (layout), EntityPage (cadastro genérico)
-│       └── pages/          Login, ChangePassword, Dashboard, OrgStructure, Settings, Audit
+│       └── pages/          Login, ChangePassword, Dashboard, OrgStructure, Settings, Audit, Users, Roles
 ├── docs/                   requisitos, arquitetura, modelo de dados, API, testes, progresso
 └── .tools/                 (fora do Git) MariaDB portátil e dados locais
 ```

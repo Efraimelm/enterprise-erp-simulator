@@ -12,8 +12,8 @@ ERP web próprio, de portfólio e para estudo, que **simula** processos empresar
 | Etapa | Conteúdo | Situação |
 | --- | --- | --- |
 | **1. Fundação** | Banco, backend, frontend, login, layout, estrutura organizacional, parâmetros e auditoria | ✅ **Concluída e testada** |
-| 2. Segurança | Telas de usuários, roles e permissões, escopo por centro e testes de acesso | Próxima |
-| 3. MM | Materiais, fornecedores, estoque, requisição, pedido, recebimento e MRP simplificado | Planejada |
+| **2. Segurança** | Usuários, roles e permissões (41), escopo por empresa/centro, proteções contra escalada de privilégio | ✅ **Concluída e testada** |
+| 3. MM | Materiais, fornecedores, estoque, requisição, pedido, recebimento e MRP simplificado | Próxima |
 | 4. SD | Clientes, preços, pedido de venda, ATP simplificado, entrega, faturamento e títulos a receber | Planejada |
 | 5. MM + SD | Estoque compartilhado, reservas, saídas e trilha de documentos | Planejada |
 | 6. n8n e IA | API documentada (OpenAPI), webhooks, alertas e assistente com fonte | Planejada |
@@ -57,6 +57,7 @@ O passo a passo completo, com os erros comuns, está em [docs/setup-windows.md](
 | [docs/requirements.md](docs/requirements.md) | Análise da especificação: requisitos, ambiguidades, riscos e decisões pendentes |
 | [docs/architecture.md](docs/architecture.md) | Arquitetura, tecnologias escolhidas e por quê, segurança e estrutura de pastas |
 | [docs/data-model.md](docs/data-model.md) | Modelo de dados atual e planejado |
+| [docs/authorization.md](docs/authorization.md) | Roles, permissões, escopo organizacional e proteções |
 | [docs/api-documentation.md](docs/api-documentation.md) | Endpoints da API |
 | [docs/test-cases.md](docs/test-cases.md) | Casos de teste e cenários de aceitação |
 | [docs/setup-windows.md](docs/setup-windows.md) | Instalação e execução no Windows |

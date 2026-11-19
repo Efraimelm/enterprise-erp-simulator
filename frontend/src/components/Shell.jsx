@@ -16,7 +16,7 @@ export default function Shell() {
         <span className="shellbar-title">Enterprise ERP Simulator</span>
         <span className="shellbar-env">Ambiente de simulação</span>
         <span className="shellbar-spacer" />
-        <span className="shellbar-user" title={user.roles.join(', ')}>
+        <span className="shellbar-user" title={`Roles: ${user.roles.join(', ') || 'nenhuma'}\nEscopo: ${user.scopes.map((s) => s.label).join('; ') || 'nenhum'}`}>
           <span className="avatar" aria-hidden>{user.full_name.slice(0, 1)}</span>
           <span className="shellbar-user-name">{user.full_name}</span>
         </span>

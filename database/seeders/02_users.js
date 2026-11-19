@@ -26,5 +26,8 @@ export async function seed(knex) {
     }
     const role = await knex('roles').where({ code: u.role }).first('id');
     await knex('user_roles').insert({ user_id: user.id, role_id: role.id }).onConflict(['user_id', 'role_id']).ignore();
+    // Escopo inicial: todas as empresas e centros (só se o usuário ainda não tiver escopo).
+    const hasScope = await knex('user_org_scopes').where({ user_id: user.id }).first('id');
+    if (!hasScope) await knex('user_org_scopes').insert({ user_id: user.id, scope_type: 'ALL' });
   }
 }

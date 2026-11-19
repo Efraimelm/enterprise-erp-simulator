@@ -42,6 +42,15 @@ purchasing_groups                                        (independente)
 
 Todas as chaves estrangeiras usam `ON DELETE RESTRICT`: não dá para excluir uma empresa que tem centros.
 
+### Escopo — `20261119_004_org_scopes.js` (Etapa 2)
+
+| Tabela | Finalidade | Chaves e restrições |
+| --- | --- | --- |
+| `user_org_scopes` | Onde o usuário atua: `ALL`, `COMPANY` (empresa inteira) ou `PLANT` (centro) | FK para users (CASCADE), companies e plants (RESTRICT). CHECK garante que cada tipo preenche só a coluna certa |
+| `roles.is_system` | Marca as roles de sistema (somente leitura na tela) | — |
+
+Catálogo: 41 permissões e 9 roles de sistema. Ver [authorization.md](authorization.md).
+
 ### Sistema — `20261119_003_system_settings.js`
 
 | Tabela | Finalidade |
@@ -59,13 +68,12 @@ Comércio Forte Ltda (CF01, BRL, pt-BR, America/Sao_Paulo):
 - organização de compras CF10, atendendo os 2 centros
 - grupos de compradores 001 e 002
 
-Usuários: `admin` (SAP_ADMIN) e `auditor` (AUDITOR), com senha provisória.
+Usuários: `admin` (SAP_ADMIN) e `auditor` (AUDITOR), com escopo ALL e senha provisória.
 
 ## Planejado
 
 | Etapa | Tabelas |
 | --- | --- |
-| 2 | `user_org_scopes` (usuário × centro/empresa), permissões MM/SD/ADMIN completas, roles MM_MANAGER, MM_ANALYST, SD_MANAGER, SD_ANALYST, PROCUREMENT, SALES, WAREHOUSE |
 | 3 | `materials`, `material_plant_data`, `suppliers`, `supplier_materials`, `payment_terms`, `tax_codes`, `document_sequences`, `purchase_requisitions(_items)`, `purchase_orders(_items)`, `goods_receipts(_items)`, `stock_balances`, `stock_movements`, `inventory_documents` |
 | 4 | `customers`, `product_prices`, `price_conditions`, `sales_orders(_items)`, `stock_reservations`, `deliveries`, `delivery_items`, `billing_documents`, `billing_items`, `accounts_receivable`, `payments` |
 | 5 | `document_links` (fluxo de documentos origem → destino) |

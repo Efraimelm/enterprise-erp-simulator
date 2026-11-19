@@ -7,6 +7,8 @@ import Dashboard from './pages/Dashboard.jsx';
 import OrgStructure from './pages/OrgStructure.jsx';
 import Settings from './pages/Settings.jsx';
 import Audit from './pages/Audit.jsx';
+import Users from './pages/Users.jsx';
+import Roles from './pages/Roles.jsx';
 
 function RequireAuth({ children }) {
   const { user, loading } = useAuth();
@@ -27,6 +29,8 @@ export default function App() {
         <Route path="admin/estrutura/:entity?" element={<OrgStructure />} />
         <Route path="admin/parametros" element={<Settings />} />
         <Route path="admin/auditoria" element={<Audit />} />
+        <Route path="admin/usuarios" element={<Users />} />
+        <Route path="admin/roles" element={<Roles />} />
         <Route path="*" element={<div className="empty">Página não encontrada.</div>} />
       </Route>
     </Routes>

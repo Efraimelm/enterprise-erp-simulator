@@ -7,6 +7,7 @@ import { db } from '../db.js';
 import { config } from '../config.js';
 import { audit } from '../lib/audit.js';
 import { forbidden, unauthorized } from '../lib/errors.js';
+import { loadScope } from '../lib/scope.js';
 
 export const hashToken = (token) => crypto.createHash('sha256').update(token).digest('hex');
 
@@ -25,7 +26,14 @@ export async function loadUserContext(userId) {
     .where('ur.user_id', userId)
     .distinct()
     .pluck('p.code');
-  return { ...user, must_change_password: !!user.must_change_password, roles, permissions: new Set(permissions) };
+  const scope = await loadScope(userId);
+  return { ...user, must_change_password: !!user.must_change_password, roles, permissions: new Set(permissions), scope };
+}
+
+/** Registra na auditoria e recusa um acesso fora do escopo organizacional do usuário. */
+export async function denyOutOfScope(req, details) {
+  await audit(req, { action: 'ACCESS', entity: req.baseUrl + req.path, result: 'DENIED', details: { method: req.method, motivo: 'fora do escopo', ...details } });
+  return forbidden('Este registro está fora do seu escopo organizacional (empresas e centros liberados para você).', 'OUT_OF_SCOPE');
 }
 
 export async function loadSession(req, res, next) {
@@ -75,6 +83,7 @@ export function publicUser(user) {
     email: user.email,
     roles: user.roles,
     permissions: [...user.permissions].sort(),
+    scopes: user.scope.entries,
     must_change_password: user.must_change_password,
   };
 }

@@ -12,8 +12,11 @@ export const CLIENT_HEADER = { 'X-ERP-Client': 'web' };
 
 export const randomPassword = () => `Tst-${crypto.randomBytes(9).toString('base64url')}9a`;
 
-/** Cria um usuário de teste com as roles informadas. */
-export async function createUser({ roles = [], status = 'ACTIVE', mustChange = false } = {}) {
+/**
+ * Cria um usuário de teste com as roles e o escopo informados.
+ * scopes: [{ type: 'ALL' }] (padrão) | [{ type: 'COMPANY', company_id }] | [{ type: 'PLANT', plant_id }] | []
+ */
+export async function createUser({ roles = [], status = 'ACTIVE', mustChange = false, scopes = [{ type: 'ALL' }] } = {}) {
   const username = `t_${crypto.randomBytes(4).toString('hex')}`;
   const password = randomPassword();
   const [id] = await db('users').insert({
@@ -27,6 +30,9 @@ export async function createUser({ roles = [], status = 'ACTIVE', mustChange = f
     const role = await db('roles').where({ code }).first('id');
     await db('user_roles').insert({ user_id: id, role_id: role.id });
   }
+  for (const s of scopes) {
+    await db('user_org_scopes').insert({ user_id: id, scope_type: s.type, company_id: s.company_id ?? null, plant_id: s.plant_id ?? null });
+  }
   return { id, username, password };
 }
 
@@ -39,3 +45,6 @@ export async function loginAs(user) {
 }
 
 export const lastAudit = (where) => db('audit_logs').where(where).orderBy('id', 'desc').first();
+
+/** id de um registro pelo código (ex.: idByCode('plants', 'CF10')). */
+export const idByCode = async (table, code, extra = {}) => (await db(table).where({ code, ...extra }).first('id')).id;
