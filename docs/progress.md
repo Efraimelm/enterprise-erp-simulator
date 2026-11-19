@@ -2,7 +2,28 @@
 
 Atualizado a cada etapa. Serve para continuar o projeto em uma nova conversa sem perder o contexto.
 
-## Estado atual: Etapa 3 concluída (19/11/2026)
+## Estado atual: Etapa 4 concluída (19/11/2026)
+
+### Etapa 4: SD (implementado)
+- Desenho em [sd-design.md](sd-design.md), escrito antes do código. As decisões A4, A6 (SD), A10 e A11 estão aplicadas.
+- Migration `006_sd`, com 12 tabelas, e seed: 3 clientes com áreas de vendas, preços gerais e de atacado, preço especial por cliente e 2 descontos.
+- **Preço por registros de condição** (cliente > canal > geral) e **desconto mais específico**, com validade. Preço, origem, desconto e imposto ficam gravados no item.
+- **ATP simplificado** (consulta) e **reserva na confirmação**, com trava do saldo. Atendimento parcial opcional e reconfirmação.
+- Aprovação acima de R$ 5.000 por outra pessoa. Cancelamento libera a reserva.
+- **Entrega → separação → saída 601**: o serviço de estoque do MM ganhou o movimento 601, que baixa o físico e o reservado juntos.
+- **Faturamento pela entrega** com título a receber (vencimento pela condição de pagamento). **Estorno** por documento negativo. Pagamento simulado parcial ou total, e títulos atrasados.
+- 6 telas novas (Clientes, Condições comerciais com simulador de preço, Pedidos de venda com ATP, Entregas, Faturamento, Contas a receber), fluxo de documentos no pedido e indicadores de vendas no painel.
+- 28 testes novos (140 no total), inclusive de concorrência na reserva e da regra **reservado = confirmado − entregue**. Teste manual do ciclo completo no navegador com 3 perfis.
+
+### Decisões da Etapa 4
+| # | Decisão | Motivo |
+| --- | --- | --- |
+| D22 | Reserva em `stock_balances.reserved_qty`, sem tabela de reservas | Um só lugar para o disponível. A coerência é garantida por teste |
+| D23 | A saída 601 consome a reserva dentro do serviço de estoque | A mesma trava, documento e regra do MM. O SD não mexe no saldo direto |
+| D24 | Status do pedido recalculado pelas quantidades | Evita status divergente das quantidades reais |
+| D25 | Preço gravado no item (foto do momento) | Mudar uma condição depois não altera pedidos nem faturas já emitidos, como no SAP |
+| D26 | Uma fatura por entrega. Estorno bloqueado se houver pagamento | Regra simples e auditável. O estorno de pagamento fica fora da v1 |
+| D27 | O backend não sobe com migration pendente | Evita rodar código novo em banco antigo. Visto na prática no teste manual |
 
 ### Etapa 3: MM (implementado)
 - Desenho em [mm-design.md](mm-design.md), escrito antes do código.
@@ -107,17 +128,11 @@ Atualizado a cada etapa. Serve para continuar o projeto em uma nova conversa sem
 
 ## Pendências e próximos passos
 
-**Etapa 4: SD** (próxima). Antes de codificar, escrever `docs/sd-design.md` (requisitos, fluxo, entidades, telas, critérios). Decisões a confirmar:
-- A4: faturar pela entrega.
-- A10: reservar na confirmação.
-- A11: estorno de fatura por documento.
-- A6 no SD: limite de aprovação de pedido de venda.
-
-O que o SD vai reaproveitar do MM:
-- `materials`;
-- `stock_balances.reserved_qty`, já pronto para as reservas do ATP;
-- o serviço de estoque `postMaterialDocument`, com novos tipos de saída (601 – saída para cliente);
-- `document_sequences`, com novas faixas.
+**Etapa 5: Integração MM + SD** (próxima). O estoque, as reservas e a saída já são compartilhados. Falta:
+1. **Trilha de documentos de ponta a ponta** (cenário 10): a partir de qualquer documento (RC, PC, recebimento 101, pedido de venda, entrega, saída 601, fatura, título), mostrar de onde veio e para onde foi. Para isso, liga as entradas 101 às saídas 601 do mesmo material e depósito. Decidir se o vínculo é por consulta ou por uma tabela `document_links`.
+2. **Teste integrado de ponta a ponta:** cadastro → compra → recebimento → venda → entrega → fatura → pagamento → trilha.
+3. **Tela "Fluxo de documentos"**, com busca global pelo número de qualquer documento (pede a especificação, item 6).
+4. Revisar o cenário 13 nas saídas do SD (já coberto pelo teste "físico = soma dos movimentos").
 
 Pendências menores:
 - O redirecionamento para o login, visto uma vez no teste manual, veio de um logout feito por script durante a navegação. Não se repetiu.

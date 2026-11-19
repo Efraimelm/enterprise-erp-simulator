@@ -16,6 +16,12 @@ import Requisitions from './pages/mm/Requisitions.jsx';
 import PurchaseOrders from './pages/mm/PurchaseOrders.jsx';
 import GoodsReceipts from './pages/mm/GoodsReceipts.jsx';
 import Mrp from './pages/mm/Mrp.jsx';
+import Customers from './pages/sd/Customers.jsx';
+import Conditions from './pages/sd/Conditions.jsx';
+import SalesOrders from './pages/sd/SalesOrders.jsx';
+import Deliveries from './pages/sd/Deliveries.jsx';
+import BillingPage from './pages/sd/Billing.jsx';
+import Receivables from './pages/sd/Receivables.jsx';
 
 function RequireAuth({ children }) {
   const { user, loading } = useAuth();
@@ -45,6 +51,12 @@ export default function App() {
         <Route path="mm/pedidos" element={<PurchaseOrders />} />
         <Route path="mm/recebimentos" element={<GoodsReceipts />} />
         <Route path="mm/mrp" element={<Mrp />} />
+        <Route path="sd/clientes" element={<Customers />} />
+        <Route path="sd/condicoes" element={<Conditions />} />
+        <Route path="sd/pedidos" element={<SalesOrders />} />
+        <Route path="sd/entregas" element={<Deliveries />} />
+        <Route path="sd/faturamento" element={<BillingPage />} />
+        <Route path="sd/contas-a-receber" element={<Receivables />} />
         <Route path="*" element={<div className="empty">Página não encontrada.</div>} />
       </Route>
     </Routes>

@@ -19,6 +19,10 @@ import { stockRouter } from './modules/mm/stock.js';
 import { purchasingRouter } from './modules/mm/purchasing.js';
 import { goodsReceiptsRouter } from './modules/mm/goods-receipts.js';
 import { mrpRouter } from './modules/mm/mrp.js';
+import { sdMasterRouter } from './modules/sd/master-data.js';
+import { salesOrdersRouter } from './modules/sd/sales-orders.js';
+import { deliveriesRouter } from './modules/sd/deliveries.js';
+import { billingRouter } from './modules/sd/billing.js';
 
 export function createApp({ loginRateLimit = config.login.rateLimit } = {}) {
   const app = express();
@@ -43,6 +47,7 @@ export function createApp({ loginRateLimit = config.login.rateLimit } = {}) {
   app.use('/api/admin/users', usersRouter);
   app.use('/api/admin', rolesRouter);
   app.use('/api/mm', masterDataRouter, stockRouter, purchasingRouter, goodsReceiptsRouter, mrpRouter);
+  app.use('/api/sd', sdMasterRouter, salesOrdersRouter, deliveriesRouter, billingRouter);
 
   app.use('/api', (req, res) => res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Rota não encontrada.' } }));
   app.use(errorHandler);

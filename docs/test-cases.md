@@ -2,7 +2,7 @@
 
 Rodar: `npm test`. Os testes recriam o banco `erp_test` do zero e nunca tocam no `erp_dev`.
 
-## Resultado atual (19/11/2026): **112 testes, 112 aprovados**
+## Resultado atual (19/11/2026): **140 testes, 140 aprovados** (cerca de 75 s)
 
 | Arquivo | Testes | Etapa |
 | --- | --- | --- |
@@ -12,6 +12,26 @@ Rodar: `npm test`. Os testes recriam o banco `erp_test` do zero e nunca tocam no
 | `scope.test.js` | 14 | 2 |
 | `admin.test.js` | 26 | 2 |
 | `mm.test.js` | 34 | 3 |
+| `sd.test.js` | 28 | 4 |
+
+## Etapa 4: `backend/tests/sd.test.js` (28)
+| Grupo | Casos |
+| --- | --- |
+| Preço e desconto | Preço do cliente > canal > geral. Desconto mais específico (8% da campanha do Atacadão em vez dos 3% do atacado). Validade invertida → 400 |
+| Cenário 4 (pedido + ATP) | ATP mostra disponível 50, confirmável 50 e falta 30 sem reservar. Pedido com numeração 00…, preço geral e imposto padrão de 18% (200 + 36 = 236). Cliente fora da área de vendas e material sem preço → 400 |
+| Cenário 5 (confirmar e reservar) | Até R$ 5.000 confirma direto e reserva 20 (disponível no MM cai para 30). Atendimento parcial confirma 30 de 40 e reconfirma depois da entrada de estoque. Sem parcial, falta de estoque → 409 sem reservar nada. **Concorrência:** dois pedidos de 8 sobre 10 em paralelo → um confirmado e um recusado, reservado 8. Acima do limite: criador e vendedor não aprovam, outro gestor aprova e só então reserva. Cancelar libera a reserva |
+| Cenários 6 e 7 (entrega e saída) | Não entrega mais que o confirmado. Entrega parcial deixa o pedido "em entrega". Sem separação não lança saída. Saída 601: físico 50→38 e reservado 20→8, movimento 601 visível no MM. Separação menor que a entrega mantém a diferença reservada. Entrega não lançada pode ser excluída, a lançada não |
+| Cenários 8 e 9 (fatura e título) | Fatura 90… com valores proporcionais (120 + 21,60 = 141,60). Título com vencimento em 30 dias. Pedido → BILLED. Fatura duplicada → 409. Pagamento parcial, excesso recusado e quitação |
+| Estorno (A11) | Fatura com pagamento não é estornada. O analista não estorna (403). O gestor estorna: documento negativo, original e título cancelados, pedido volta para "entregue" e pode ser faturado de novo. Título vencido aparece como atrasado |
+| Permissões e escopo | Almoxarife não cria pedido de venda nem altera cliente. Vendedor não cria entrega, fatura nem vê títulos. O vendedor do CF10 não vende pelo CF20, e a lista vem filtrada |
+| Consistência | **Reservado = soma de (confirmado − entregue)** em todos os depósitos. **Físico = soma dos movimentos** (MM + SD) |
+
+### Teste manual no navegador (Etapa 4)
+1. `qa.vendas` (Vendedor, CF10) → **Pedidos de venda → Novo**: Atacadão, CF10/Atacado/Alimentos, arroz × 100 → **Verificar disponibilidade**: disponível 120, confirmável 100, falta 0.
+2. Rascunho **0000000001**: preço do canal R$ 29,90 e desconto de 8% (campanha do cliente). Total R$ 2.990,00 − R$ 239,20 + 18% = **R$ 3.245,94**. **Confirmar** → abaixo de R$ 5.000 → confirmado com 100 reservados.
+3. `qa.expedicao` (Almoxarife) → entrega **8000000001** com 60 → separação → saída lançada, documento de material **4900000002**. Estoque do arroz no MM: físico 60, reservado 40, disponível 20.
+4. `qa.gestorsd` (Gestor SD) → fatura **9000000001**: 60 × 29,90 − 8% = R$ 1.650,48 + 18% = **R$ 1.947,57**. Título com vencimento em 60 dias (condição D60 do cliente).
+5. Pagamento PIX **1400000001** → título quitado. O fluxo de documentos do pedido mostra pedido → entrega/saída → fatura → título pago.
 
 ## Etapa 3: `backend/tests/mm.test.js` (34)
 | Grupo | Casos |
@@ -157,12 +177,12 @@ Rodar: `npm test`. Os testes recriam o banco `erp_test` do zero e nunca tocam no
 | 1 | Cadastrar material e consultá-lo no MM | ✅ Etapa 3 |
 | 2 | Criar requisição, aprovar e converter em pedido | ✅ Etapa 3 |
 | 3 | Receber parcialmente e conferir o estoque | ✅ Etapa 3 |
-| 4 | Pedido de venda com verificação de disponibilidade | 4 |
-| 5 | Confirmar pedido e reservar estoque | 4/5 |
-| 6 | Entrega parcial com saída | 4/5 |
-| 7 | Estoque MM atualizado após saída SD | 5 |
-| 8 | Faturar e gerar título a receber | 4 |
-| 9 | Registrar pagamento e quitar título | 4 |
+| 4 | Pedido de venda com verificação de disponibilidade | ✅ Etapa 4 |
+| 5 | Confirmar pedido e reservar estoque | ✅ Etapa 4 (inclusive com concorrência) |
+| 6 | Entrega parcial com saída | ✅ Etapa 4 |
+| 7 | Estoque MM atualizado após saída SD | ✅ Etapa 4 (físico e reservado, movimento 601 visível no MM) |
+| 8 | Faturar e gerar título a receber | ✅ Etapa 4 |
+| 9 | Registrar pagamento e quitar título | ✅ Etapa 4 |
 | 10 | Trilha de documentos da compra à venda | 5 |
 | 11 | Operação sem permissão → acesso negado | ✅ Etapas 1 e 2 (as rotas de MM/SD ganham o mesmo teste nas Etapas 3 e 4) |
 | 12 | Centro fora do escopo → acesso negado | ✅ Etapa 2 |

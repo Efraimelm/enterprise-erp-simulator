@@ -48,7 +48,9 @@ export const PERMISSIONS = [
   ['SD.SALES_ORDER.CREATE', 'SD', 'Criar e alterar pedidos de venda'],
   ['SD.SALES_ORDER.APPROVE', 'SD', 'Aprovar, confirmar ou cancelar pedidos de venda'],
   ['SD.DELIVERY.CREATE', 'SD', 'Criar entregas e registrar a saída de mercadoria'],
+  ['SD.BILLING.READ', 'SD', 'Consultar faturamento'],
   ['SD.BILLING.CREATE', 'SD', 'Criar documentos de faturamento'],
+  ['SD.RECEIVABLE.READ', 'SD', 'Consultar títulos a receber e pagamentos (simulados)'],
   ['SD.BILLING.CANCEL', 'SD', 'Estornar faturamento'],
   ['SD.PAYMENT.POST', 'SD', 'Registrar pagamento de títulos (simulado)'],
 ];

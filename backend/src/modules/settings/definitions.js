@@ -26,6 +26,14 @@ export const settingDefinitions = {
     label: 'Limite de aprovação automática de pedidos de compra',
     schema: z.string().regex(/^\d{1,10}(\.\d{1,2})?$/, 'Informe um valor com ponto decimal, ex.: 1000.00'),
   },
+  so_approval_limit: {
+    label: 'Limite de confirmação automática de pedidos de venda',
+    schema: z.string().regex(/^\d{1,10}(\.\d{1,2})?$/, 'Informe um valor com ponto decimal, ex.: 5000.00'),
+  },
+  sd_default_tax_code: {
+    label: 'Código de imposto padrão nas vendas',
+    schema: z.string().regex(/^[A-Z0-9]{1,10}$/, 'Informe o código de imposto, ex.: I2'),
+  },
   number_locale: {
     label: 'Formato de números',
     options: ['pt-BR', 'en-US'],

@@ -131,3 +131,42 @@ Regras de negócio em [mm-design.md](mm-design.md). Todos os documentos seguem o
 | POST | `/mm/goods-receipts` | MM.GOODS_RECEIPT.POST | `{ purchase_order_id, notes?, items: [{ purchase_order_item_id, quantity, storage_location_id? }] }` |
 | POST | `/mm/mrp/run` | MM.MRP.RUN | `{ plant_id? }` → sugestões com cobertura e melhor fornecedor |
 | POST | `/mm/mrp/convert` | MM.MRP.RUN + MM.PURCHASE_REQ.CREATE | `{ items: [{ material_id, plant_id, quantity }] }` → requisições de origem MRP |
+
+## SD (Etapa 4)
+
+Regras em [sd-design.md](sd-design.md). Pedidos, entregas, faturas e títulos seguem o escopo do centro do pedido. Erros de SD:
+- 409 `INVALID_STATUS` (transição não permitida);
+- 409 `INSUFFICIENT_STOCK` (ATP sem atendimento parcial);
+- 403 `SEGREGATION_OF_DUTIES`;
+- 409 `HAS_DELIVERIES` (cancelar pedido com entregas);
+- 409 `ALREADY_BILLED`;
+- 409 `HAS_PAYMENTS` (estornar fatura com pagamento).
+
+### Cadastros e condições
+| Método | Rota | Permissão | Descrição |
+| --- | --- | --- | --- |
+| GET | `/sd/customers[/:id]` | SD.CUSTOMER.READ | Filtros: `q`, `status`, `sales_area_id`. O detalhe traz `sales_areas[]`, `orders[]` e `history[]` |
+| POST / PUT | `/sd/customers`, `/sd/customers/:id` | SD.CUSTOMER.CREATE / UPDATE | Dados fictícios + endereço de entrega + `payment_term_id` + `sales_area_ids[]` |
+| POST | `/sd/customers/:id/status` | SD.CUSTOMER.UPDATE | `{ status, reason }` |
+| GET / POST / PUT | `/sd/prices[/:id]` | SD.PRICE.READ / UPDATE | `{ material_id, sales_organization_id, distribution_channel_id?, customer_id?, price, valid_from, valid_to, is_active }` |
+| GET / POST / PUT | `/sd/discounts[/:id]` | SD.PRICE.READ / UPDATE | `{ sales_organization_id, distribution_channel_id?, customer_id?, material_id?, percent, description?, valid_from, valid_to, is_active }` |
+| GET | `/sd/price-simulation` | SD.PRICE.READ | `?material_id&sales_organization_id&distribution_channel_id&customer_id[&date]` → preço (com a origem) e desconto que valem |
+
+### Vendas, entregas e faturamento
+| Método | Rota | Permissão | Descrição |
+| --- | --- | --- | --- |
+| POST | `/sd/atp` | SD.SALES_ORDER.READ | `{ plant_id, items: [{ material_id, quantity, storage_location_id? }] }` → disponível, confirmável e falta (não reserva) |
+| GET | `/sd/sales-orders[/:id]` | SD.SALES_ORDER.READ | Filtros: `status`, `plant_id`, `customer_id`, `q`, `deliverable`. O detalhe traz os itens com `confirmed_qty`, `delivered_qty`, `billed_qty` e `deliverable_qty`, além de entregas, faturas, títulos e histórico |
+| POST / PUT | `/sd/sales-orders[/:id]` | SD.SALES_ORDER.CREATE | `{ customer_id, sales_organization_id, distribution_channel_id, division_id, plant_id, requested_date, allow_partial, customer_reference?, notes?, items: [{ material_id, quantity, storage_location_id?, tax_code_id? }] }`. Só em rascunho |
+| POST | `/sd/sales-orders/:id/submit` · `reconfirm` | SD.SALES_ORDER.CREATE | Confirma e reserva (ou aguarda aprovação) · reserva o que faltou |
+| POST | `/sd/sales-orders/:id/approve` · `reject` · `cancel` | SD.SALES_ORDER.APPROVE | Quem criou não aprova. `reject` e `cancel` exigem `{ reason }`. `cancel` libera as reservas |
+| GET | `/sd/deliveries[/:id]` | SD.SALES_ORDER.READ | Filtros: `status`, `plant_id`, `sales_order_id`, `unbilled` |
+| POST | `/sd/deliveries` | SD.DELIVERY.CREATE | `{ sales_order_id, items: [{ sales_order_item_id, quantity }] }` |
+| POST | `/sd/deliveries/:id/pick` | SD.DELIVERY.CREATE | `{ items: [{ delivery_item_id, picked_qty }] }` |
+| POST | `/sd/deliveries/:id/post-goods-issue` | SD.DELIVERY.CREATE | Saída 601: baixa o físico e o reservado |
+| DELETE | `/sd/deliveries/:id` | SD.DELIVERY.CREATE | Só entrega não lançada |
+| GET | `/sd/billing[/:id]` | SD.BILLING.READ | Filtros: `plant_id`, `customer_id`, `type`, `status` |
+| POST | `/sd/billing` | SD.BILLING.CREATE | `{ delivery_id, billing_date? }` → fatura + título a receber |
+| POST | `/sd/billing/:id/cancel` | SD.BILLING.CANCEL | `{ reason }` → documento de estorno |
+| GET | `/sd/receivables[/:id]` | SD.RECEIVABLE.READ | Filtros: `status`, `open`, `overdue`, `customer_id`, `plant_id`. Cada título traz `open_amount` e `overdue`. A lista traz `meta.open_total` |
+| POST | `/sd/receivables/:id/payments` | SD.PAYMENT.POST | `{ amount, payment_date, method: PIX\|BOLETO\|TRANSFER, notes? }` |

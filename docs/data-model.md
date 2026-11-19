@@ -70,6 +70,22 @@ Catálogo: 42 permissões e 9 roles de sistema. Ver [authorization.md](authoriza
 
 Quantidades usam `DECIMAL(15,3)` e valores `DECIMAL(15,2)`. Datas de negócio (entrega, necessidade) usam `DATE`, devolvido como texto `AAAA-MM-DD`.
 
+### SD — `20261120_006_sd.js` (Etapa 4)
+
+| Tabela | Finalidade | Destaques |
+| --- | --- | --- |
+| `customers` | Cliente fictício, endereço de cobrança e de entrega, condição de pagamento | Status ACTIVE/BLOCKED/INACTIVE |
+| `customer_sales_areas` | Em quais áreas de vendas (org. + canal + setor) o cliente pode comprar | Único por (cliente, área) |
+| `product_prices` | Registro de condição de preço por material e org. de vendas, opcionalmente por canal e/ou cliente, com validade | Cliente > canal > geral |
+| `price_discounts` | Desconto percentual com validade e combinações opcionais (cliente, material, canal) | Vale o mais específico |
+| `sales_orders` / `_items` | Pedido de venda: área de vendas, centro fornecedor, totais e status. O item grava o preço, a origem do preço, o desconto e o imposto | `confirmed_qty` (reservado), `delivered_qty` e `billed_qty` |
+| `deliveries` / `delivery_items` | Entrega: criada → separada → saída lançada (601) | `picked_qty` e o documento de material da saída |
+| `billing_documents` / `billing_items` | Fatura (INVOICE) e estorno (CANCELLATION, com valores negativos e referência à original) | Status ACTIVE/CANCELLED |
+| `accounts_receivable` | Título a receber (um por fatura): valor, pago, vencimento e status | `CHECK (0 ≤ pago ≤ valor)` |
+| `payments` | Pagamento simulado (PIX, boleto, transferência) | Numeração 14… |
+
+**Reserva:** usa `stock_balances.reserved_qty`, sem tabela separada. A regra (testada) é que o reservado de cada depósito é igual à soma de (confirmado − entregue) dos itens de pedidos não cancelados. A saída 601 baixa o físico e o reservado juntos.
+
 ### Sistema — `20261119_003_system_settings.js`
 
 | Tabela | Finalidade |
@@ -93,7 +109,6 @@ Usuários: `admin` (SAP_ADMIN) e `auditor` (AUDITOR), com escopo ALL e senha pro
 
 | Etapa | Tabelas |
 | --- | --- |
-| 4 | `customers`, `product_prices`, `price_conditions`, `sales_orders(_items)`, `stock_reservations`, `deliveries`, `delivery_items`, `billing_documents`, `billing_items`, `accounts_receivable`, `payments` |
 | 5 | `document_links` (fluxo de documentos origem → destino) |
 | 6 | `integration_clients` (chaves de API, só o hash), `webhook_subscriptions`, `integration_logs`, `notifications` |
 

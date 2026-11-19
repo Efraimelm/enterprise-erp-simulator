@@ -12,6 +12,7 @@ export const MOVEMENT_TYPES = {
   311: { label: 'Transferência entre depósitos', transfer: true, manual: true },
   701: { label: 'Sobra de inventário', sign: +1 },
   702: { label: 'Falta de inventário', sign: -1 },
+  601: { label: 'Saída de mercadoria para cliente (entrega)', sign: -1, consumesReservation: true },
 };
 
 /** Garante que a linha de saldo existe e a trava (FOR UPDATE) até o fim da transação. */
@@ -58,6 +59,16 @@ export async function postMaterialDocument(trx, { lines, reason = null, userId }
 
   for (const p of postings) {
     const bal = balances.get(`${p.materialId}:${p.storageLocationId}`);
+    if (MOVEMENT_TYPES[p.movementType].consumesReservation) {
+      // Saída de entrega: baixa a quantidade que já estava reservada para o pedido de venda.
+      if (bal.reserved_qty + p.delta < -1e-9 || bal.physical_qty + p.delta < -1e-9) {
+        throw new HttpError(409, 'INSUFFICIENT_RESERVATION', `Reserva insuficiente para a saída: reservado ${bal.reserved_qty}, saída ${-p.delta}.`);
+      }
+      bal.physical_qty = qty(bal.physical_qty + p.delta);
+      bal.reserved_qty = qty(bal.reserved_qty + p.delta);
+      await trx('stock_balances').where({ id: bal.id }).update({ physical_qty: bal.physical_qty, reserved_qty: bal.reserved_qty });
+      continue;
+    }
     const available = qty(bal.physical_qty - bal.reserved_qty);
     if (p.delta < 0 && available + p.delta < 0) {
       throw new HttpError(409, 'INSUFFICIENT_STOCK', `Estoque disponível insuficiente: ${available} disponível, ${-p.delta} solicitado.`, {
@@ -87,4 +98,36 @@ export async function postMaterialDocument(trx, { lines, reason = null, userId }
   }));
   await trx('stock_movements').insert(movements);
   return { docNumber, movements };
+}
+
+/** Disponível (físico − reservado) de um material no depósito, sem travar. Usado pela consulta de ATP. */
+export async function availableQty(trx, materialId, slocId) {
+  const b = await trx('stock_balances').where({ material_id: materialId, storage_location_id: slocId }).first('physical_qty', 'reserved_qty');
+  return b ? qty(b.physical_qty - b.reserved_qty) : 0;
+}
+
+/**
+ * Reserva estoque para um pedido de venda (ATP simplificado), com trava da linha de saldo.
+ * Reserva até `quantity`. Se `allowPartial` for falso e faltar estoque, não reserva nada e lança 409.
+ * @returns quantidade efetivamente reservada
+ */
+export async function reserveStock(trx, { materialId, plantId, storageLocationId, quantity, allowPartial }) {
+  const bal = await lockBalance(trx, materialId, plantId, storageLocationId);
+  const available = qty(bal.physical_qty - bal.reserved_qty);
+  const wanted = qty(quantity);
+  if (!allowPartial && available < wanted) {
+    throw new HttpError(409, 'INSUFFICIENT_STOCK', `Estoque disponível insuficiente: ${available} disponível, ${wanted} pedido.`, {
+      material_id: materialId, storage_location_id: storageLocationId, available, requested: wanted,
+    });
+  }
+  const reserved = qty(Math.max(0, Math.min(available, wanted)));
+  if (reserved > 0) await trx('stock_balances').where({ id: bal.id }).update({ reserved_qty: qty(bal.reserved_qty + reserved) });
+  return reserved;
+}
+
+/** Libera uma reserva (cancelamento de pedido de venda). */
+export async function releaseStock(trx, { materialId, plantId, storageLocationId, quantity }) {
+  if (!(quantity > 0)) return;
+  const bal = await lockBalance(trx, materialId, plantId, storageLocationId);
+  await trx('stock_balances').where({ id: bal.id }).update({ reserved_qty: qty(Math.max(0, bal.reserved_qty - quantity)) });
 }

@@ -7,9 +7,11 @@ O acesso depende de duas perguntas, sempre respondidas no **backend**:
 
 > Paralelo com o SAP: as roles fazem o papel das roles do PFCG, e as permissões, dos objetos de autorização. O escopo lembra os valores de organização (ex.: `WERKS` para o centro). A implementação é própria e simplificada.
 
-## Permissões (42)
+## Permissões (44)
 
-A Etapa 3 acrescentou `MM.GOODS_RECEIPT.OVERDELIVERY`, que permite receber acima do pedido dentro da tolerância do fornecedor. Ela está no MM_MANAGER e no SAP_ADMIN.
+Permissões acrescentadas depois da Etapa 2:
+- **Etapa 3:** `MM.GOODS_RECEIPT.OVERDELIVERY`, que permite receber acima do pedido dentro da tolerância do fornecedor. Está no MM_MANAGER e no SAP_ADMIN.
+- **Etapa 4:** `SD.BILLING.READ` e `SD.RECEIVABLE.READ`. Estão no SD_MANAGER, SD_ANALYST, AUDITOR e SAP_ADMIN.
 
 Formato `MÓDULO.OBJETO.AÇÃO`. A lista completa e a descrição de cada permissão estão em `database/seeders/01_permissions_roles.js`.
 

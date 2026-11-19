@@ -219,3 +219,4 @@ tr.row-warn td { background: var(--warn-bg); }
 @media (max-width: 480px) {
   .shellbar-title { display: none; }
 }
+.sim-result { margin-top: 12px; font-size: 15px; }
