@@ -2,7 +2,7 @@
 
 Rodar: `npm test`. Os testes recriam o banco `erp_test` do zero e nunca tocam no `erp_dev`.
 
-## Resultado atual (19/11/2026): **140 testes, 140 aprovados** (cerca de 75 s)
+## Resultado atual (19/11/2026): **151 testes, 151 aprovados**
 
 | Arquivo | Testes | Etapa |
 | --- | --- | --- |
@@ -13,6 +13,28 @@ Rodar: `npm test`. Os testes recriam o banco `erp_test` do zero e nunca tocam no
 | `admin.test.js` | 26 | 2 |
 | `mm.test.js` | 34 | 3 |
 | `sd.test.js` | 28 | 4 |
+| `e2e.test.js` | 11 | 5 |
+
+## Etapa 5: `backend/tests/e2e.test.js` (11): ciclo completo e trilha
+| Caso | Esperado |
+| --- | --- |
+| Compra | RC → aprovação → PC (aprovado automaticamente: 20 × 4 = 80) → dois recebimentos de 10 → pedido RECEIVED |
+| Venda | Pedido de 15 → reserva → entrega → saída 601 → fatura → pagamento total. Estoque final: físico 5, reservado 0 |
+| **Cenário 10** | A trilha a partir do **pagamento** contém pagamento, título, fatura, entrega, pedido de venda, saída 601, os 2 recebimentos, o PC e a **RC**, sem nada oculto |
+| FIFO | A saída de 15 recebeu 10 do 1º recebimento e 5 do 2º |
+| Sentido inverso | A trilha a partir da RC chega ao pagamento. As arestas seguem o processo (RC→PC→101, venda→entrega→601, título→pagamento) |
+| Auditor | Vê a trilha inteira (leitura, todos os centros) |
+| Vendedor | Vê vendas e estoque. PC, RC e fatura ficam ocultos e contados em `hidden` |
+| Outro centro | 403 `OUT_OF_SCOPE` |
+| Busca global | Encontra PC, documento de material, pedido de venda e fatura pelo número. Vendedor não encontra o PC, e usuário do CF20 não encontra a venda do CF10. Texto não numérico → 400 |
+| Erros | Tipo desconhecido → 400. Documento inexistente → 404 |
+| Transferência 311 | Venda pelo depósito 0002 rastreia carga 561 (0001) → transferência 311 → saída 601 |
+
+### Teste manual no navegador (Etapa 5)
+1. Ciclo criado pela API real no banco de desenvolvimento: RC 1000000001 → PC 4500000001 → recebimento 4900000002 (40 de café) → venda 0000000001 (80 de café para a Padaria) → entrega 8000000001 → saída 4900000003 → fatura 9000000001 → pagamento 1400000001.
+2. Na barra superior, a busca por **1400000001** abriu a trilha do pagamento: 10 documentos em 4 colunas (Compras, Estoque, Vendas, Financeiro).
+3. A saída 4900000003 mostra que veio **60 da carga inicial 4900000001 + 20 do recebimento 4900000002** (FIFO simulado), e a trilha continua até a RC.
+4. Celular (375 px): colunas empilhadas, sem rolagem horizontal.
 
 ## Etapa 4: `backend/tests/sd.test.js` (28)
 | Grupo | Casos |
@@ -183,7 +205,7 @@ Rodar: `npm test`. Os testes recriam o banco `erp_test` do zero e nunca tocam no
 | 7 | Estoque MM atualizado após saída SD | ✅ Etapa 4 (físico e reservado, movimento 601 visível no MM) |
 | 8 | Faturar e gerar título a receber | ✅ Etapa 4 |
 | 9 | Registrar pagamento e quitar título | ✅ Etapa 4 |
-| 10 | Trilha de documentos da compra à venda | 5 |
+| 10 | Trilha de documentos da compra à venda | ✅ Etapa 5 |
 | 11 | Operação sem permissão → acesso negado | ✅ Etapas 1 e 2 (as rotas de MM/SD ganham o mesmo teste nas Etapas 3 e 4) |
 | 12 | Centro fora do escopo → acesso negado | ✅ Etapa 2 |
 | 13 | Todo movimento de estoque com documento e responsável | ✅ Etapa 3 (MM). Saídas do SD na Etapa 5 |

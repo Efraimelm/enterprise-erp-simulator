@@ -15,8 +15,8 @@ ERP web próprio, de portfólio e para estudo, que **simula** processos empresar
 | **2. Segurança** | Usuários, roles e permissões (44), escopo por empresa/centro, proteções contra escalada de privilégio | ✅ **Concluída e testada** |
 | **3. MM** | Materiais, fornecedores, estoque (101/201/311/561/701/702), requisição → pedido → recebimento, inventário e MRP simplificado | ✅ **Concluída e testada** |
 | **4. SD** | Clientes, condições comerciais, pedido de venda com ATP e reserva, entrega com saída 601, faturamento com estorno e contas a receber (simulado) | ✅ **Concluída e testada** |
-| 5. MM + SD | Trilha de documentos compra → venda, rastreabilidade ponta a ponta e testes integrados | Próxima (estoque e reservas já são compartilhados) |
-| 6. n8n e IA | API documentada (OpenAPI), webhooks, alertas e assistente com fonte | Planejada |
+| **5. MM + SD** | Trilha de documentos de ponta a ponta (RC → … → pagamento) com FIFO simulado, busca global por número e teste integrado do ciclo completo | ✅ **Concluída e testada** |
+| 6. n8n e IA | API documentada (OpenAPI), webhooks, alertas e assistente com fonte | Próxima |
 | 7. BI | KPIs, relatórios e Power BI | Planejada |
 | 8. Portfólio | Testes finais, vídeos e apresentação | Planejada |
 
@@ -60,6 +60,7 @@ O passo a passo completo, com os erros comuns, está em [docs/setup-windows.md](
 | [docs/authorization.md](docs/authorization.md) | Roles, permissões, escopo organizacional e proteções |
 | [docs/mm-design.md](docs/mm-design.md) | Módulo MM: processo, regras de negócio, numeração, estoque e MRP |
 | [docs/sd-design.md](docs/sd-design.md) | Módulo SD: preço, ATP e reserva, entrega, faturamento, estorno e contas a receber |
+| [docs/integration-design.md](docs/integration-design.md) | Integração MM + SD: trilha de documentos, FIFO simulado e busca global |
 | [docs/api-documentation.md](docs/api-documentation.md) | Endpoints da API |
 | [docs/test-cases.md](docs/test-cases.md) | Casos de teste e cenários de aceitação |
 | [docs/setup-windows.md](docs/setup-windows.md) | Instalação e execução no Windows |

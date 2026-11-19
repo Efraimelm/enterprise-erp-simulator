@@ -170,3 +170,14 @@ Regras em [sd-design.md](sd-design.md). Pedidos, entregas, faturas e títulos se
 | POST | `/sd/billing/:id/cancel` | SD.BILLING.CANCEL | `{ reason }` → documento de estorno |
 | GET | `/sd/receivables[/:id]` | SD.RECEIVABLE.READ | Filtros: `status`, `open`, `overdue`, `customer_id`, `plant_id`. Cada título traz `open_amount` e `overdue`. A lista traz `meta.open_total` |
 | POST | `/sd/receivables/:id/payments` | SD.PAYMENT.POST | `{ amount, payment_date, method: PIX\|BOLETO\|TRANSFER, notes? }` |
+
+## Trilha de documentos (Etapa 5)
+
+Regras em [integration-design.md](integration-design.md).
+
+| Método | Rota | Permissão | Descrição |
+| --- | --- | --- | --- |
+| GET | `/flow/search?q=<número>` | logado | Até 20 documentos cujo número começa com `q`, filtrados por permissão e escopo: `[{ type, id, number, typeLabel }]` |
+| GET | `/flow/:type/:id` | leitura do tipo + escopo do documento | `{ root, nodes[], edges[], hidden, truncated, note }`. `type`: `PURCHASE_REQ`, `PURCHASE_ORDER`, `MATERIAL_DOC` (id = número do documento), `SALES_ORDER`, `DELIVERY`, `BILLING`, `RECEIVABLE`, `PAYMENT` |
+
+Cada nó traz `key`, `type`, `typeLabel`, `stage` (Compras, Estoque, Vendas ou Financeiro), `number`, `status`, `date`, `plant_code` e `amount`. Os documentos de material trazem também `summary` (linhas). Cada aresta traz `{ from, to, label }`, no sentido do processo. As ligações entre documentos de material indicam a quantidade atribuída por **FIFO simulado**.

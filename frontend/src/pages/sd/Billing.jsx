@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../../api.js';
 import { useAuth } from '../../auth.jsx';
 import { Alert, Field, Modal, Pager, Select, errorText, fmtDate, fmtMoney, fmtQty, today, useList } from '../../components/ui.jsx';
+import { FlowLink } from '../DocumentFlow.jsx';
 
 export default function Billing() {
   const { can } = useAuth();
@@ -123,7 +124,10 @@ function BillingDetail({ id, onClose, onChanged, onOpen }) {
         <p>Título a receber: {fmtMoney(b.receivable.amount)} · pago {fmtMoney(b.receivable.paid_amount)} · vence {fmtDate(b.receivable.due_date)} · {b.receivable.status}
           {' '}<button className="link" onClick={() => navigate(`/sd/contas-a-receber?abrir=${b.receivable.id}`)}>abrir título</button></p>
       )}
-      {b.type === 'INVOICE' && b.status === 'ACTIVE' && can('SD.BILLING.CANCEL') && <button className="btn btn-small btn-danger" onClick={cancel}>Estornar fatura</button>}
+      <div className="row-actions">
+        <FlowLink type="BILLING" id={b.id} />
+        {b.type === 'INVOICE' && b.status === 'ACTIVE' && can('SD.BILLING.CANCEL') && <button className="btn btn-small btn-danger" onClick={cancel}>Estornar fatura</button>}
+      </div>
     </Modal>
   );
 }

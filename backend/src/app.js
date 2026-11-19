@@ -23,6 +23,7 @@ import { sdMasterRouter } from './modules/sd/master-data.js';
 import { salesOrdersRouter } from './modules/sd/sales-orders.js';
 import { deliveriesRouter } from './modules/sd/deliveries.js';
 import { billingRouter } from './modules/sd/billing.js';
+import { flowRouter } from './modules/flow/flow.js';
 
 export function createApp({ loginRateLimit = config.login.rateLimit } = {}) {
   const app = express();
@@ -48,6 +49,7 @@ export function createApp({ loginRateLimit = config.login.rateLimit } = {}) {
   app.use('/api/admin', rolesRouter);
   app.use('/api/mm', masterDataRouter, stockRouter, purchasingRouter, goodsReceiptsRouter, mrpRouter);
   app.use('/api/sd', sdMasterRouter, salesOrdersRouter, deliveriesRouter, billingRouter);
+  app.use('/api/flow', flowRouter);
 
   app.use('/api', (req, res) => res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Rota não encontrada.' } }));
   app.use(errorHandler);

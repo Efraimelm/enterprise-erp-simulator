@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../../api.js';
 import { useAuth } from '../../auth.jsx';
 import { Alert, Field, Modal, Pager, Select, errorText, fmtDate, fmtMoney, fmtQty, useList, useLookup } from '../../components/ui.jsx';
+import { FlowLink } from '../DocumentFlow.jsx';
 
 const D_LABEL = { CREATED: ['Criada', 'warn'], PICKED: ['Separada', 'warn'], POSTED: ['Saída lançada', 'ok'] };
 const DStatus = ({ value }) => { const [l, c] = D_LABEL[value]; return <span className={`status ${c}`}>{l}</span>; };
@@ -148,6 +149,7 @@ function DeliveryDetail({ id, onClose, onChanged }) {
         </tbody>
       </table>
       <div className="row-actions">
+        <FlowLink type="DELIVERY" id={d.id} />
         {editable && <button className="btn btn-small" onClick={() => run(() => api(`/sd/deliveries/${id}/pick`, { method: 'POST', body: { items: d.items.map((i) => ({ delivery_item_id: i.id, picked_qty: picked[i.id] })) } }), 'Separação registrada.')}>1. Confirmar separação</button>}
         {d.status === 'PICKED' && can('SD.DELIVERY.CREATE') && (
           <button className="btn btn-small btn-primary" onClick={() => window.confirm('Lançar a saída de mercadoria? O estoque será baixado (movimento 601).') && run(() => api(`/sd/deliveries/${id}/post-goods-issue`, { method: 'POST' }), 'Saída de mercadoria lançada.')}>2. Lançar saída de mercadoria</button>

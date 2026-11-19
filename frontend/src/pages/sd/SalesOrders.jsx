@@ -4,6 +4,7 @@ import { api } from '../../api.js';
 import { useAuth } from '../../auth.jsx';
 import { Alert, Field, Modal, Pager, Select, Status, codeName, errorText, fmtDate, fmtMoney, fmtQty, today, useList, useLookup } from '../../components/ui.jsx';
 import { History } from '../mm/Materials.jsx';
+import { FlowLink } from '../DocumentFlow.jsx';
 
 export const SO_LABEL = {
   DRAFT: ['Rascunho', 'off'], PENDING_APPROVAL: ['Aguardando aprovação', 'warn'], CONFIRMED: ['Confirmado', 'ok'], IN_DELIVERY: ['Em entrega', 'warn'],
@@ -174,6 +175,7 @@ function OrderDetail({ id, onClose, onEdit, onChanged }) {
       </p>
       {o.status_note && <div className="alert warn-box">{o.status_note}</div>}
       <div className="row-actions">
+        <FlowLink type="SALES_ORDER" id={o.id} />
         {o.status === 'DRAFT' && can('SD.SALES_ORDER.CREATE') && <button className="btn btn-small" onClick={() => onEdit(o)}>Editar</button>}
         {o.status === 'DRAFT' && can('SD.SALES_ORDER.CREATE') && <button className="btn btn-small btn-primary" onClick={() => act('submit', undefined, (r) => (r.status === 'CONFIRMED' ? 'Pedido confirmado e estoque reservado.' : 'Enviado para aprovação.'))}>Confirmar pedido</button>}
         {o.status === 'PENDING_APPROVAL' && can('SD.SALES_ORDER.APPROVE') && !mine && <button className="btn btn-small btn-primary" onClick={() => act('approve', undefined, 'Pedido aprovado e estoque reservado.')}>Aprovar</button>}

@@ -22,6 +22,7 @@ import SalesOrders from './pages/sd/SalesOrders.jsx';
 import Deliveries from './pages/sd/Deliveries.jsx';
 import BillingPage from './pages/sd/Billing.jsx';
 import Receivables from './pages/sd/Receivables.jsx';
+import DocumentFlow from './pages/DocumentFlow.jsx';
 
 function RequireAuth({ children }) {
   const { user, loading } = useAuth();
@@ -57,6 +58,7 @@ export default function App() {
         <Route path="sd/entregas" element={<Deliveries />} />
         <Route path="sd/faturamento" element={<BillingPage />} />
         <Route path="sd/contas-a-receber" element={<Receivables />} />
+        <Route path="fluxo" element={<DocumentFlow />} />
         <Route path="*" element={<div className="empty">Página não encontrada.</div>} />
       </Route>
     </Routes>

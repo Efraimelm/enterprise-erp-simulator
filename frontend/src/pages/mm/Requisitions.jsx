@@ -1,17 +1,20 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../../api.js';
 import { useAuth } from '../../auth.jsx';
 import ItemsEditor, { itemsPayload } from '../../components/ItemsEditor.jsx';
 import { Alert, Field, Modal, Pager, Select, Status, codeName, errorText, fmtDate, fmtMoney, fmtQty, today, useList, useLookup } from '../../components/ui.jsx';
 import { History } from './Materials.jsx';
+import { FlowLink } from '../DocumentFlow.jsx';
 
 export default function Requisitions() {
   const { can } = useAuth();
   const list = useList('/mm/purchase-requisitions', { status: '', plant_id: '', source: '', q: '' });
   const plants = useLookup('/org/plants?pageSize=100');
   const [creating, setCreating] = useState(false);
-  const [openId, setOpenId] = useState(null);
+  const [params, setParams] = useSearchParams();
+  const openId = params.get('abrir') ? Number(params.get('abrir')) : null;
+  const setOpenId = (id) => setParams(id ? { abrir: String(id) } : {});
   const [msg, setMsg] = useState('');
 
   return (
@@ -118,6 +121,7 @@ function RequisitionDetail({ id, onClose, onChanged }) {
       <p><strong>Justificativa:</strong> {r.justification}</p>
       {r.decided_by_username && <p className="hint">Decisão por {r.decided_by_username} em {fmtDate(r.decided_at)}{r.decision_note ? ` — ${r.decision_note}` : ''}</p>}
       <div className="row-actions">
+        <FlowLink type="PURCHASE_REQ" id={r.id} />
         {canDecide && !isRequester && <button className="btn btn-small btn-primary" onClick={() => act('approve', undefined, 'Requisição aprovada.')}>Aprovar</button>}
         {canDecide && !isRequester && <button className="btn btn-small btn-danger" onClick={() => withReason('reject', 'rejeitar')}>Rejeitar</button>}
         {canDecide && isRequester && <span className="hint">Você é o solicitante: outra pessoa precisa aprovar.</span>}

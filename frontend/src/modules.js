@@ -3,7 +3,7 @@
 export const navigation = [
   {
     group: 'Visão geral',
-    items: [{ label: 'Painel', path: '/', icon: '◧' }],
+    items: [{ label: 'Painel', path: '/', icon: '◧' }, { label: 'Fluxo de documentos', path: '/fluxo' }],
   },
   {
     group: 'Administração',
@@ -53,8 +53,8 @@ export const roadmap = [
   { stage: 2, title: 'Segurança', detail: 'Usuários, roles, permissões, escopo por centro e testes de acesso', status: 'done' },
   { stage: 3, title: 'MM', detail: 'Materiais, fornecedores, estoque, requisição, pedido, recebimento e MRP', status: 'done' },
   { stage: 4, title: 'SD', detail: 'Clientes, preços, pedido de venda, ATP, entrega, faturamento e recebimento', status: 'done' },
-  { stage: 5, title: 'Integração MM + SD', detail: 'Estoque compartilhado, reservas, saídas e trilha de documentos', status: 'next' },
-  { stage: 6, title: 'n8n e IA', detail: 'API documentada, webhooks, alertas e assistente com fonte', status: 'planned' },
+  { stage: 5, title: 'Integração MM + SD', detail: 'Estoque compartilhado, reservas, saídas e trilha de documentos', status: 'done' },
+  { stage: 6, title: 'n8n e IA', detail: 'API documentada, webhooks, alertas e assistente com fonte', status: 'next' },
   { stage: 7, title: 'BI', detail: 'Indicadores, relatórios e Power BI', status: 'planned' },
   { stage: 8, title: 'Portfólio', detail: 'Testes finais, documentação, vídeos e apresentação', status: 'planned' },
 ];

@@ -2,7 +2,18 @@
 
 Atualizado a cada etapa. Serve para continuar o projeto em uma nova conversa sem perder o contexto.
 
-## Estado atual: Etapa 4 concluída (19/11/2026)
+## Estado atual: Etapa 5 concluída (19/11/2026)
+
+### Etapa 5: Integração MM + SD (implementado)
+- Desenho em [integration-design.md](integration-design.md).
+- **Trilha de documentos** (`/api/flow`) montada por consulta às chaves existentes, sem tabela nova. A ligação recebimento → saída é feita por **FIFO simulado**, que também atravessa as transferências 311.
+- A trilha respeita permissão e escopo: documentos ocultos são contados e a trilha não passa por eles. O limite é de 150 documentos.
+- **Busca global** pelo número na barra superior e tela **Fluxo de documentos** com 4 colunas (Compras, Estoque, Vendas, Financeiro). O botão "Ver trilha completa" aparece em RC, PC, pedido de venda, entrega e fatura.
+- **Teste integrado** do ciclo completo (11 testes, 151 no total). Cenário 10 coberto.
+- Teste manual: busca do pagamento → trilha até a requisição, com a saída atribuída a 60 da carga inicial + 20 da compra.
+
+### Decisões da Etapa 5
+Ver D28 a D31 em [integration-design.md](integration-design.md): trilha por consulta e sem `document_links`, FIFO simulado (não é lote nem custeio), permissão e escopo por nó, e limite de 150 documentos.
 
 ### Etapa 4: SD (implementado)
 - Desenho em [sd-design.md](sd-design.md), escrito antes do código. As decisões A4, A6 (SD), A10 e A11 estão aplicadas.
@@ -128,11 +139,11 @@ Atualizado a cada etapa. Serve para continuar o projeto em uma nova conversa sem
 
 ## Pendências e próximos passos
 
-**Etapa 5: Integração MM + SD** (próxima). O estoque, as reservas e a saída já são compartilhados. Falta:
-1. **Trilha de documentos de ponta a ponta** (cenário 10): a partir de qualquer documento (RC, PC, recebimento 101, pedido de venda, entrega, saída 601, fatura, título), mostrar de onde veio e para onde foi. Para isso, liga as entradas 101 às saídas 601 do mesmo material e depósito. Decidir se o vínculo é por consulta ou por uma tabela `document_links`.
-2. **Teste integrado de ponta a ponta:** cadastro → compra → recebimento → venda → entrega → fatura → pagamento → trilha.
-3. **Tela "Fluxo de documentos"**, com busca global pelo número de qualquer documento (pede a especificação, item 6).
-4. Revisar o cenário 13 nas saídas do SD (já coberto pelo teste "físico = soma dos movimentos").
+**Etapa 6: n8n e IA** (próxima). Antes de codificar, escrever `docs/integration-api-design.md`. Decisão a confirmar: A9 (a IA respeita as permissões de quem pergunta). Proposta:
+1. **API de integração:** clientes de integração com chave própria (guardada só como hash) e permissões restritas, só leitura no início. Paginação, filtros e idempotência nas operações de escrita futuras. **Documentação OpenAPI/Swagger** em `/api/docs`.
+2. **Webhooks** com assinatura HMAC, nova tentativa com espera crescente e log em `integration_logs`, para os eventos `stock.below_reorder_point`, `purchase_requisition.created`, `purchase_order.approved`, `goods_receipt.posted`, `sales_order.created`, `sales_order.confirmed`, `delivery.posted` e `billing.created`.
+3. **n8n:** novos fluxos no projeto Copiloto que recebem os eventos e geram alertas e resumo diário, trocando a Northwind pela API própria do ERP (sem chamá-la de "OData SAP").
+4. **Assistente de IA**, só de consulta: ferramentas que chamam a API com a identidade do usuário, citam a fonte e o documento e usam cálculo determinista. Cenários 14 e 15.
 
 Pendências menores:
 - O redirecionamento para o login, visto uma vez no teste manual, veio de um logout feito por script durante a navegação. Não se repetiu.

@@ -5,6 +5,7 @@ import { useAuth } from '../../auth.jsx';
 import ItemsEditor, { itemsPayload } from '../../components/ItemsEditor.jsx';
 import { Alert, Field, Modal, Pager, Select, Status, codeName, errorText, fmtDate, fmtMoney, fmtQty, today, useList, useLookup } from '../../components/ui.jsx';
 import { History } from './Materials.jsx';
+import { FlowLink } from '../DocumentFlow.jsx';
 
 export default function PurchaseOrders() {
   const { can } = useAuth();
@@ -141,6 +142,7 @@ function OrderDetail({ id, onClose, onEdit, onChanged }) {
       </p>
       {o.status_note && <div className="alert warn-box">{o.status_note}</div>}
       <div className="row-actions">
+        <FlowLink type="PURCHASE_ORDER" id={o.id} />
         {o.status === 'DRAFT' && can('MM.PURCHASE_ORDER.CREATE') && <button className="btn btn-small" onClick={() => onEdit(o)}>Editar</button>}
         {o.status === 'DRAFT' && can('MM.PURCHASE_ORDER.CREATE') && (
           <button className="btn btn-small btn-primary" onClick={() => act('submit', undefined, (r) => (r.status === 'APPROVED' ? 'Aprovado automaticamente (dentro do limite).' : 'Enviado para aprovação.'))}>Enviar para aprovação</button>

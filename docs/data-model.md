@@ -84,6 +84,9 @@ Quantidades usam `DECIMAL(15,3)` e valores `DECIMAL(15,2)`. Datas de negócio (e
 | `accounts_receivable` | Título a receber (um por fatura): valor, pago, vencimento e status | `CHECK (0 ≤ pago ≤ valor)` |
 | `payments` | Pagamento simulado (PIX, boleto, transferência) | Numeração 14… |
 
+### Etapa 5: sem tabelas novas
+A trilha de documentos é **consultada** a partir das chaves que já existem (decisão D28). A ligação recebimento ↔ saída é calculada por FIFO simulado sobre `stock_movements`. A tabela `document_links`, prevista no plano inicial, não foi criada para não duplicar vínculos. Ver [integration-design.md](integration-design.md).
+
 **Reserva:** usa `stock_balances.reserved_qty`, sem tabela separada. A regra (testada) é que o reservado de cada depósito é igual à soma de (confirmado − entregue) dos itens de pedidos não cancelados. A saída 601 baixa o físico e o reservado juntos.
 
 ### Sistema — `20261119_003_system_settings.js`
@@ -109,7 +112,6 @@ Usuários: `admin` (SAP_ADMIN) e `auditor` (AUDITOR), com escopo ALL e senha pro
 
 | Etapa | Tabelas |
 | --- | --- |
-| 5 | `document_links` (fluxo de documentos origem → destino) |
 | 6 | `integration_clients` (chaves de API, só o hash), `webhook_subscriptions`, `integration_logs`, `notifications` |
 
 Regra que valerá a partir da Etapa 3: `stock_balances` **só** muda junto com uma linha em `stock_movements`, na mesma transação. Não haverá rota para editar o saldo diretamente.
