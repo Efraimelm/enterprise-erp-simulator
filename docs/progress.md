@@ -2,7 +2,40 @@
 
 Atualizado a cada etapa. Serve para continuar o projeto em uma nova conversa sem perder o contexto.
 
-## Estado atual: Etapa 5 concluída (19/11/2026)
+## Estado atual: Etapa 6 concluída (19/11/2026)
+
+### Etapa 6: API, webhooks, n8n e IA (implementado)
+- Desenho em [integration-api-design.md](integration-api-design.md). A9 decidida: a IA usa a sessão de quem pergunta.
+- Migration `007_integration`: chaves de API, idempotência, outbox de eventos, entregas, logs e consultas à IA.
+- **Clientes de integração** = usuários técnicos com role e escopo.
+  - Chave `erp_<prefixo>_<segredo>`, guardada só como hash, revogável, com validade.
+  - **Somente leitura**, com limite de 300 chamadas por minuto e log de cada chamada.
+  - Nova role INTEGRATION_READONLY.
+- **OpenAPI 3.1 + Swagger** em `/api/docs` (rotas de leitura, KPIs, trilha e webhooks).
+- **Idempotency-Key** em qualquer POST: repetição devolve a resposta original, e outro corpo responde 409.
+- **Eventos (outbox na transação)** para RC, PC aprovado, recebimento, pedido de venda criado e confirmado, saída, fatura e estoque abaixo do ponto (sem repetir o mesmo alerta por 12 h).
+- **Webhooks** assinados com HMAC-SHA256 e timestamp, segredo cifrado com AES-256-GCM, novas tentativas em 1 min, 5 min, 30 min, 2 h e 6 h e depois DEAD, reenvio manual e teste (ping).
+- **KPIs** consolidados com as fórmulas (`/api/kpis/summary`).
+- **Assistente de IA** só de consulta, com 7 ferramentas:
+  - aplica as permissões e o escopo de quem pergunta;
+  - as fontes são montadas pelo backend;
+  - Gemini é opcional, e sem ele (ou se falhar) responde no modo determinista;
+  - responde em Fatos, Estimativas e Recomendações;
+  - cada consulta fica registrada.
+- Telas **Integrações** (clientes e chaves, webhooks, eventos e logs) e **Assistente**.
+- Fluxos **n8n** em `integrations/n8n/` (eventos com assinatura conferida e resumo diário). **Testados no n8n local:** ping e evento real entregues com HTTP 200, requisição forjada recusada com 401.
+- 31 testes novos (182 no total). Cenários 14 e 15 cobertos.
+
+### Decisões da Etapa 6
+| # | Decisão | Motivo |
+| --- | --- | --- |
+| D32 | Cliente de integração é um usuário técnico | Reaproveita permissões e escopo. O n8n vê exatamente o que a role e o escopo permitem |
+| D33 | Chaves só de leitura nesta versão | Menor risco. Escrita entra quando houver um caso de uso real |
+| D34 | Outbox na transação, com despachante assíncrono | O evento existe se, e só se, o documento foi confirmado. A entrega não trava a operação |
+| D35 | Segredo do webhook cifrado (não em hash) | O ERP precisa reler o segredo para assinar. O hash só serve para conferir |
+| D36 | Assistente dentro do ERP com a sessão do usuário, e fontes pelo backend | Cumpre A9 e impede citação inventada pelo modelo |
+| D37 | Modo determinista como padrão sem chave de IA | A demo funciona sem custo nem dependência externa, e serve de plano B se o Gemini falhar |
+| D38 | Assinatura no n8n com o nó Crypto (HMAC), não com o nó Code | O nó Code do n8n bloqueia o módulo `crypto` por padrão |
 
 ### Etapa 5: Integração MM + SD (implementado)
 - Desenho em [integration-design.md](integration-design.md).
@@ -139,11 +172,15 @@ Ver D28 a D31 em [integration-design.md](integration-design.md): trilha por cons
 
 ## Pendências e próximos passos
 
-**Etapa 6: n8n e IA** (próxima). Antes de codificar, escrever `docs/integration-api-design.md`. Decisão a confirmar: A9 (a IA respeita as permissões de quem pergunta). Proposta:
-1. **API de integração:** clientes de integração com chave própria (guardada só como hash) e permissões restritas, só leitura no início. Paginação, filtros e idempotência nas operações de escrita futuras. **Documentação OpenAPI/Swagger** em `/api/docs`.
-2. **Webhooks** com assinatura HMAC, nova tentativa com espera crescente e log em `integration_logs`, para os eventos `stock.below_reorder_point`, `purchase_requisition.created`, `purchase_order.approved`, `goods_receipt.posted`, `sales_order.created`, `sales_order.confirmed`, `delivery.posted` e `billing.created`.
-3. **n8n:** novos fluxos no projeto Copiloto que recebem os eventos e geram alertas e resumo diário, trocando a Northwind pela API própria do ERP (sem chamá-la de "OData SAP").
-4. **Assistente de IA**, só de consulta: ferramentas que chamam a API com a identidade do usuário, citam a fonte e o documento e usam cálculo determinista. Cenários 14 e 15.
+**Etapa 7: BI** (próxima). A API `GET /api/kpis/summary`, com as fórmulas, já existe. Falta:
+1. Visões tabulares para o Power BI: estoque por material e centro, compras por fornecedor, vendas por período e categoria, títulos. Paginadas e lidas com a chave INTEGRATION_READONLY.
+2. Tela de **Relatórios** no ERP: giro de estoque, pedidos pendentes e atrasados, faturamento por período, contas a receber por vencimento. Exportação em CSV.
+3. Arquivo `.pbix` (ou o passo a passo do Power BI Desktop) em `analytics/`, com as medidas DAX documentadas.
+
+Pendências menores:
+- Estornar pagamento (hoje, fatura paga não pode ser estornada).
+- Chaves de API com escrita (hoje só leitura), quando houver um caso de uso no n8n.
+- Gerar o `.env` com `WEBHOOK_SECRET_KEY` já foi incluído no `db-setup`. Instalações antigas precisam acrescentar a linha à mão (ver setup-windows).
 
 Pendências menores:
 - O redirecionamento para o login, visto uma vez no teste manual, veio de um logout feito por script durante a navegação. Não se repetiu.

@@ -4,6 +4,7 @@
 import { HttpError } from '../../lib/errors.js';
 import { nextNumber } from '../../lib/numbering.js';
 import { qty } from '../../lib/numbers.js';
+import { checkReorderPoint } from '../../lib/events.js';
 
 export const MOVEMENT_TYPES = {
   101: { label: 'Entrada por pedido de compra', sign: +1 },
@@ -97,6 +98,9 @@ export async function postMaterialDocument(trx, { lines, reason = null, userId }
     posted_at: now,
   }));
   await trx('stock_movements').insert(movements);
+  // Saídas podem deixar o material no ponto de reposição: avisa a integração (evento).
+  const decreased = new Set(postings.filter((p) => p.delta < 0).map((p) => `${p.materialId}:${p.plantId}`));
+  for (const k of decreased) { const [m, p] = k.split(':').map(Number); await checkReorderPoint(trx, m, p); }
   return { docNumber, movements };
 }
 
@@ -121,7 +125,10 @@ export async function reserveStock(trx, { materialId, plantId, storageLocationId
     });
   }
   const reserved = qty(Math.max(0, Math.min(available, wanted)));
-  if (reserved > 0) await trx('stock_balances').where({ id: bal.id }).update({ reserved_qty: qty(bal.reserved_qty + reserved) });
+  if (reserved > 0) {
+    await trx('stock_balances').where({ id: bal.id }).update({ reserved_qty: qty(bal.reserved_qty + reserved) });
+    await checkReorderPoint(trx, materialId, plantId);
+  }
   return reserved;
 }
 

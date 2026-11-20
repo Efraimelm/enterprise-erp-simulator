@@ -10,6 +10,7 @@ import { audit } from '../../lib/audit.js';
 import { badRequest, forbidden, HttpError } from '../../lib/errors.js';
 import { qty } from '../../lib/numbers.js';
 import { withTransaction } from '../../lib/tx.js';
+import { emitEvent } from '../../lib/events.js';
 import { requirePermission } from '../../middleware/auth.js';
 import { assertPlant, assertSlocInPlant, findScoped, pageSchema, parseId, scopePlants, zId, zOptText, zQty } from './common.js';
 import { postMaterialDocument } from './stock-service.js';
@@ -105,6 +106,10 @@ goodsReceiptsRouter.post('/goods-receipts', requirePermission('MM.GOODS_RECEIPT.
     const complete = poItems.every((p) => p.received_qty >= p.quantity);
     const status = complete ? 'RECEIVED' : 'PARTIALLY_RECEIVED';
     await trx('purchase_orders').where({ id: po.id }).update({ status });
+    await emitEvent(trx, 'goods_receipt.posted', {
+      doc_number: doc.docNumber, purchase_order: { id: po.id, number: po.number, status }, plant_id: po.plant_id,
+      lines: doc.movements.map((m) => ({ material_id: m.material_id, storage_location_id: m.storage_location_id, quantity: m.quantity })),
+    }, { plantId: po.plant_id });
     await audit(req, {
       action: 'GOODS_RECEIPT', entity: 'purchase_orders', entityId: po.id, result: 'SUCCESS',
       details: { pedido: po.number, documento_material: doc.docNumber, de: po.status, para: status, itens: body.items },

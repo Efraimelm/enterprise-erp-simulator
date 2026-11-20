@@ -22,6 +22,11 @@ const schema = z.object({
   LOGIN_RATE_LIMIT: z.coerce.number().int().positive().default(10),
   LOGIN_MAX_FAILED_ATTEMPTS: z.coerce.number().int().positive().default(5),
   LOGIN_LOCK_MINUTES: z.coerce.number().int().positive().default(15),
+  WEBHOOK_SECRET_KEY: z.string().min(16).optional(),
+  WEBHOOK_DISPATCH_INTERVAL_MS: z.coerce.number().int().min(1000).default(5000),
+  // Vazio no .env = sem chave (assistente em modo determinista).
+  GEMINI_API_KEY: z.preprocess((v) => (v === '' ? undefined : v), z.string().min(10).optional()),
+  GEMINI_MODEL: z.string().min(3).default('gemini-3.1-flash-lite'),
   SEED_ADMIN_PASSWORD: z.string().min(12).optional(),
   SEED_AUDITOR_PASSWORD: z.string().min(12).optional(),
 });
@@ -51,6 +56,17 @@ export const config = {
     rateLimit: env.LOGIN_RATE_LIMIT,
     maxFailedAttempts: env.LOGIN_MAX_FAILED_ATTEMPTS,
     lockMinutes: env.LOGIN_LOCK_MINUTES,
+  },
+  integration: {
+    // Chave que cifra os segredos dos webhooks. Sem ela no .env, deriva da senha do banco (aceitável só no ambiente local).
+    webhookSecretKey: env.WEBHOOK_SECRET_KEY ?? `derived:${env.DB_PASSWORD}`,
+    dispatchIntervalMs: env.WEBHOOK_DISPATCH_INTERVAL_MS,
+    apiKeyRateLimit: 300,
+  },
+  // Mutável de propósito: os testes ligam/desligam o modo LLM sem reiniciar o processo.
+  ai: {
+    geminiKey: env.GEMINI_API_KEY ?? null,
+    model: env.GEMINI_MODEL,
   },
   seed: {
     adminPassword: env.SEED_ADMIN_PASSWORD,

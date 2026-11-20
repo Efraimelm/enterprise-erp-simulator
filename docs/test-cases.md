@@ -2,7 +2,7 @@
 
 Rodar: `npm test`. Os testes recriam o banco `erp_test` do zero e nunca tocam no `erp_dev`.
 
-## Resultado atual (19/11/2026): **151 testes, 151 aprovados**
+## Resultado atual (19/11/2026): **182 testes, 182 aprovados**
 
 | Arquivo | Testes | Etapa |
 | --- | --- | --- |
@@ -14,6 +14,24 @@ Rodar: `npm test`. Os testes recriam o banco `erp_test` do zero e nunca tocam no
 | `mm.test.js` | 34 | 3 |
 | `sd.test.js` | 28 | 4 |
 | `e2e.test.js` | 11 | 5 |
+| `integration.test.js` | 31 | 6 |
+
+## Etapa 6: `backend/tests/integration.test.js` (31)
+| Grupo | Casos |
+| --- | --- |
+| Chave de API | Aparece uma vez, banco guarda só o hash. Lê com role e escopo (só CF10). KPIs com as fórmulas. POST → 403 `READ_ONLY_KEY`. Sem acesso à administração. Log de cada chamada. Usuário técnico não entra pela tela. Chave inexistente ou revogada → 401. Limite por chave → 429. Vendedor não administra integrações |
+| Idempotência | Mesma `Idempotency-Key` → mesma resposta (`Idempotent-Replay`), um só movimento. Outro corpo → 409 `IDEMPOTENCY_CONFLICT`. Chave mal formada → 400 |
+| **Cenário 14** (webhooks) | Segredo cifrado. Requisição → evento na transação → **receptor HTTP local recebe o POST e a assinatura HMAC confere** → entrega SUCCESS + log. Operação desfeita (ATP sem estoque) **não** gera evento. Alerta de estoque baixo emitido uma vez (sem repetir). Receptor com 503 → novas tentativas até DEAD (6 tentativas) → reenvio manual → SUCCESS. Filtro por evento. Tela de eventos. URL e evento inválidos → 400 |
+| OpenAPI | Especificação 3.1 com rotas e webhooks. Swagger UI com CSP própria |
+| **Cenário 15** (assistente) | Determinista com fonte montada pelo sistema. Custo de reposição = soma do MRP, em "Estimativas". **Vendedor não obtém pedidos de compra pela IA** (negado, sem fonte). Escopo: só pedidos do CF10. Pergunta fora do repertório → ajuda. "Crie uma requisição" não cria nada. **Gemini simulado:** chama a ferramenta e a fonte vem do backend, e o vendedor nem recebe as ferramentas de compras. Gemini falhando → modo determinista com aviso. Consulta registrada sem segredos. Sem permissão → 403. Capabilities por usuário |
+
+### Teste real com o n8n local (Etapa 6)
+1. Webhook cadastrado no ERP para `http://localhost:5678/webhook/erp-eventos`. Fluxo `10-erp-eventos.json` importado e publicado no n8n com o segredo (o arquivo do repositório guarda só o placeholder).
+2. **Testar** (ping) → entrega **SUCCESS, HTTP 200, 1 tentativa**.
+3. Requisição 1000000001 criada → evento `purchase_requisition.created` → **SUCCESS, HTTP 200** pelo despachante.
+4. Requisição forjada (assinatura errada) direto no n8n → o próprio fluxo responde **401**.
+5. Tela Integrações → Eventos mostra as duas entregas. Swagger em `/api/docs` com 26 operações (rotas + webhooks). Assistente responde o custo de reposição (R$ 9.307,30, 5 itens) com método e fonte.
+6. Depois o banco de desenvolvimento foi recriado, o webhook recadastrado com um segredo novo e o fluxo atualizado no n8n. Ping final: SUCCESS 200.
 
 ## Etapa 5: `backend/tests/e2e.test.js` (11): ciclo completo e trilha
 | Caso | Esperado |
@@ -209,5 +227,5 @@ Rodar: `npm test`. Os testes recriam o banco `erp_test` do zero e nunca tocam no
 | 11 | Operação sem permissão → acesso negado | ✅ Etapas 1 e 2 (as rotas de MM/SD ganham o mesmo teste nas Etapas 3 e 4) |
 | 12 | Centro fora do escopo → acesso negado | ✅ Etapa 2 |
 | 13 | Todo movimento de estoque com documento e responsável | ✅ Etapa 3 (MM). Saídas do SD na Etapa 5 |
-| 14 | Evento recebido pelo n8n | 6 |
-| 15 | IA consulta dados e mostra a fonte | 6 |
+| 14 | Evento recebido pelo n8n | ✅ Etapa 6 (teste automatizado + n8n real) |
+| 15 | IA consulta dados e mostra a fonte | ✅ Etapa 6 |

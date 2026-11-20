@@ -84,6 +84,19 @@ Quantidades usam `DECIMAL(15,3)` e valores `DECIMAL(15,2)`. Datas de negócio (e
 | `accounts_receivable` | Título a receber (um por fatura): valor, pago, vencimento e status | `CHECK (0 ≤ pago ≤ valor)` |
 | `payments` | Pagamento simulado (PIX, boleto, transferência) | Numeração 14… |
 
+### Integração — `20261120_007_integration.js` (Etapa 6)
+
+| Tabela | Finalidade | Destaques |
+| --- | --- | --- |
+| `users.is_technical` | Marca os clientes de integração (usuários técnicos) | Não entram pela tela de login |
+| `api_keys` | Chaves de API: prefixo + **hash SHA-256**, validade, revogação, último uso | A chave em texto nunca é gravada |
+| `idempotency_keys` | Resposta guardada por (usuário, chave, método, rota) por 24 h | Repetição devolve a resposta original |
+| `webhook_subscriptions` | Destino, eventos e segredo **cifrado** (AES-256-GCM) | — |
+| `integration_events` | Outbox: evento gravado na transação do documento | `event_id` (UUID), `dedupe_key` para alertas |
+| `webhook_deliveries` | Uma entrega por evento × assinatura: status, tentativas, próxima tentativa, último erro | PENDING → SUCCESS / FAILED → DEAD |
+| `integration_logs` | Entrada (chamadas por chave) e saída (webhooks): rota, status e tempo | Sem corpo das mensagens |
+| `ai_queries` | Perguntas ao assistente: usuário, modo, ferramentas e documentos citados | Sem chaves nem respostas completas |
+
 ### Etapa 5: sem tabelas novas
 A trilha de documentos é **consultada** a partir das chaves que já existem (decisão D28). A ligação recebimento ↔ saída é calculada por FIFO simulado sobre `stock_movements`. A tabela `document_links`, prevista no plano inicial, não foi criada para não duplicar vínculos. Ver [integration-design.md](integration-design.md).
 

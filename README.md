@@ -16,8 +16,8 @@ ERP web próprio, de portfólio e para estudo, que **simula** processos empresar
 | **3. MM** | Materiais, fornecedores, estoque (101/201/311/561/701/702), requisição → pedido → recebimento, inventário e MRP simplificado | ✅ **Concluída e testada** |
 | **4. SD** | Clientes, condições comerciais, pedido de venda com ATP e reserva, entrega com saída 601, faturamento com estorno e contas a receber (simulado) | ✅ **Concluída e testada** |
 | **5. MM + SD** | Trilha de documentos de ponta a ponta (RC → … → pagamento) com FIFO simulado, busca global por número e teste integrado do ciclo completo | ✅ **Concluída e testada** |
-| 6. n8n e IA | API documentada (OpenAPI), webhooks, alertas e assistente com fonte | Próxima |
-| 7. BI | KPIs, relatórios e Power BI | Planejada |
+| **6. n8n e IA** | API de integração com chave (só leitura) e OpenAPI/Swagger, idempotência, webhooks assinados com novas tentativas, fluxos n8n testados com o n8n real e assistente de IA só de consulta que cita a fonte | ✅ **Concluída e testada** |
+| 7. BI | KPIs, relatórios e Power BI | Próxima (API de KPIs já pronta) |
 | 8. Portfólio | Testes finais, vídeos e apresentação | Planejada |
 
 O que é **implementado**, **simulado** e **planejado** está detalhado em [docs/progress.md](docs/progress.md).
@@ -61,6 +61,9 @@ O passo a passo completo, com os erros comuns, está em [docs/setup-windows.md](
 | [docs/mm-design.md](docs/mm-design.md) | Módulo MM: processo, regras de negócio, numeração, estoque e MRP |
 | [docs/sd-design.md](docs/sd-design.md) | Módulo SD: preço, ATP e reserva, entrega, faturamento, estorno e contas a receber |
 | [docs/integration-design.md](docs/integration-design.md) | Integração MM + SD: trilha de documentos, FIFO simulado e busca global |
+| [docs/integration-api-design.md](docs/integration-api-design.md) | API de integração, chaves, idempotência, webhooks, n8n e assistente de IA |
+| [integrations/n8n/](integrations/n8n/) | Fluxos n8n (eventos e resumo diário) e passo a passo |
+| `/api/docs` | Documentação OpenAPI/Swagger da API (com o sistema rodando) |
 | [docs/api-documentation.md](docs/api-documentation.md) | Endpoints da API |
 | [docs/test-cases.md](docs/test-cases.md) | Casos de teste e cenários de aceitação |
 | [docs/setup-windows.md](docs/setup-windows.md) | Instalação e execução no Windows |

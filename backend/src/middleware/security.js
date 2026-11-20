@@ -10,6 +10,8 @@ const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
 
 export function csrfProtection(req, res, next) {
   if (SAFE_METHODS.has(req.method)) return next();
+  // Chamadas com chave de API não usam cookie, então não há risco de CSRF (e são só leitura).
+  if (/^Bearer erp_/.test(req.get('authorization') || '')) return next();
   if (!req.get('x-erp-client')) {
     throw forbidden('Requisição recusada: cabeçalho X-ERP-Client ausente.', 'CSRF_REJECTED');
   }

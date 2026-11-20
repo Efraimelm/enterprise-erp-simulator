@@ -13,6 +13,7 @@ import { badRequest, HttpError } from '../../lib/errors.js';
 import { nextNumber } from '../../lib/numbering.js';
 import { money } from '../../lib/numbers.js';
 import { withTransaction } from '../../lib/tx.js';
+import { emitEvent } from '../../lib/events.js';
 import { requirePermission } from '../../middleware/auth.js';
 import { assertPlant, findScoped, pageSchema, parseId, scopePlants, zDate, zId, zMoney, zOptText } from '../mm/common.js';
 import { invalidStatus, refreshOrderStatus } from './sales-orders.js';
@@ -92,6 +93,12 @@ billingRouter.post('/billing', requirePermission('SD.BILLING.CREATE'), async (re
       amount: money(totalNet + totalTax), issue_date: billingDate, due_date: addDays(billingDate, days),
     });
     const status = await refreshOrderStatus(trx, so.id);
+    const cust = await trx('customers').where({ id: so.customer_id }).first('code', 'name');
+    await emitEvent(trx, 'billing.created', {
+      id, number, sales_order: { id: so.id, number: so.number }, delivery: { id: d.id, number: d.number },
+      customer: { id: so.customer_id, code: cust.code, name: cust.name }, plant_id: so.plant_id,
+      billing_date: billingDate, due_date: addDays(billingDate, days), total_gross: money(totalNet + totalTax), currency: so.currency,
+    }, { plantId: so.plant_id });
     await audit(req, { action: 'BILLING', entity: 'billing_documents', entityId: id, result: 'SUCCESS', details: { numero: number, entrega: d.number, pedido: so.number, total: money(totalNet + totalTax), status_pedido: status } }, trx);
     return billingDetail(req, id, trx);
   });

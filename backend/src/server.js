@@ -2,6 +2,7 @@ import { createApp } from './app.js';
 import { config } from './config.js';
 import { db } from './db.js';
 import { logger } from './lib/logger.js';
+import { startDispatcher } from './lib/webhooks.js';
 
 try {
   await db.raw('select 1');
@@ -20,6 +21,9 @@ if (pending.length) {
 const server = createApp().listen(config.port, '127.0.0.1', () => {
   logger.info('server_started', { url: `http://localhost:${config.port}`, database: config.db.database });
 });
+
+// Despachante de webhooks (outbox → POST assinado, com novas tentativas).
+startDispatcher(config.integration.dispatchIntervalMs);
 
 const shutdown = () => server.close(() => db.destroy().then(() => process.exit(0)));
 process.on('SIGINT', shutdown);

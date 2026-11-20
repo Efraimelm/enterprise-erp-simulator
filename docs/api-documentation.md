@@ -1,4 +1,25 @@
-# API (Etapa 1)
+# API
+
+> A partir da Etapa 6, a referência completa da **API de integração** (chave de API, só leitura, webhooks) está no **Swagger**, em `/api/docs`, e na especificação `/api/openapi.json`. Este arquivo continua documentando as rotas usadas pela interface, com sessão de usuário.
+
+## Integração, KPIs e assistente (Etapa 6)
+| Método | Rota | Permissão | Descrição |
+| --- | --- | --- | --- |
+| GET | `/kpis/summary` | BI.KPI.READ | Indicadores de estoque, compras, vendas e financeiro, com `definitions` (fórmulas) |
+| GET/POST | `/integration/clients`, `/integration/clients/:userId/keys` | ADMIN.INTEGRATION.READ / MAINTAIN | Clientes de integração e chaves. A chave volta uma vez só |
+| POST | `/integration/keys/:id/revoke` | ADMIN.INTEGRATION.MAINTAIN | Revoga a chave |
+| GET/POST/PUT | `/integration/webhooks[/:id]` | ADMIN.INTEGRATION.READ / MAINTAIN | Assinaturas. O segredo volta uma vez só |
+| POST | `/integration/webhooks/:id/rotate-secret` · `/test` | ADMIN.INTEGRATION.MAINTAIN | Novo segredo · envia `integration.ping` agora |
+| GET | `/integration/events` · `/integration/logs` · `/integration/event-types` | ADMIN.INTEGRATION.READ | Eventos com entregas · log de entrada e saída · tipos de evento |
+| POST | `/integration/deliveries/:id/retry` | ADMIN.INTEGRATION.MAINTAIN | Reenvia entrega FAILED ou DEAD |
+| GET | `/assistant/capabilities` | AI.ASSISTANT.USE | Modo (LLM ou determinista) e ferramentas permitidas para o usuário |
+| POST | `/assistant/chat` | AI.ASSISTANT.USE | `{ message, history? }` → `{ answer, mode, sources[], tools_used[], denied[] }` |
+
+Cabeçalhos:
+- **`Authorization: Bearer erp_…`:** chave de API, só leitura. Dispensa o cabeçalho CSRF.
+- **`Idempotency-Key`:** opcional em qualquer POST com sessão.
+
+# Rotas da interface (Etapa 1 em diante)
 
 Base: `http://localhost:5173/api` (pelo proxy do frontend) ou `http://127.0.0.1:3001/api`.
 A documentação OpenAPI/Swagger completa entra na Etapa 6. Este arquivo é a referência até lá.

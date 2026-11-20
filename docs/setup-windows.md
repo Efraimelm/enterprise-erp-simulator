@@ -50,14 +50,26 @@ npm run dev          # sobe o sistema
 ```
 Para parar: `Ctrl+C` na janela do `npm run dev` e depois `npm run db:stop`.
 
-## 4. Testes
+## 4. Integração e IA (opcional)
+
+- **Documentação da API:** com o sistema rodando, abra http://localhost:5173/api/docs (Swagger).
+- **n8n:** siga o passo a passo em [integrations/n8n/README.md](../integrations/n8n/README.md).
+- **Assistente com IA de verdade:**
+  1. Crie a sua chave em https://aistudio.google.com/apikey.
+  2. Cole a chave **só** no `.env`, em `GEMINI_API_KEY=` (nunca no código nem no chat).
+  3. Reinicie o `npm run dev`.
+
+  Sem a chave, o assistente funciona no modo determinista, com os mesmos dados e fontes.
+- **Bancos criados antes da Etapa 6:** rode `npm run migrate` e `npm run seed`. Se o seu `.env` não tiver `WEBHOOK_SECRET_KEY`, acrescente uma linha com um valor aleatório longo. Sem ela, o sistema deriva a chave da senha do banco, o que só é aceitável no ambiente local.
+
+## 5. Testes
 
 ```powershell
 npm test
 ```
 Recria o banco `erp_test` e roda os testes da API. O banco precisa estar ligado.
 
-## 5. Problemas comuns
+## 6. Problemas comuns
 
 | Mensagem | Causa | Solução |
 | --- | --- | --- |
@@ -68,3 +80,6 @@ Recria o banco `erp_test` e roda os testes da API. O banco precisa estar ligado.
 | `execução de scripts foi desabilitada` | Política do PowerShell | Os scripts `npm run db:*` já usam `-ExecutionPolicy Bypass` só para eles |
 | Esqueci a senha do admin | — | `npm run db:reset` recria o banco de desenvolvimento e volta à senha do `.env` (**apaga os dados**) |
 | `MariaDB não respondeu` | Porta 3306 ocupada por outro MySQL | Mude `DB_PORT` no `.env` e rode `npm run db:setup` de novo |
+| Webhook "Falhou" com HTTP 404 | O fluxo do n8n não está publicado | Abra o fluxo 10 no n8n e clique em **Publish** |
+| Webhook "Falhou" com HTTP 401 | O segredo no n8n é diferente do segredo do ERP | ERP → Integrações → Webhooks → **Novo segredo** e cole no nó de assinatura do n8n |
+| Assistente diz "modo determinista" | Sem `GEMINI_API_KEY` no `.env`, ou o Gemini falhou | Configure a chave e reinicie. Sem ela, o assistente responde as perguntas previstas |

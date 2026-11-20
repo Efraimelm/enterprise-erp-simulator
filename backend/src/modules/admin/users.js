@@ -112,7 +112,7 @@ async function revokeSessions(userId, trx) {
 }
 
 /** Valida e grava as roles. Recusa role inexistente e role com permissão que quem atribui não tem. */
-async function setRoles(req, userId, codes, trx) {
+export async function setRoles(req, userId, codes, trx) {
   const unique = [...new Set(codes)];
   const roles = unique.length ? await trx('roles').whereIn('code', unique).select('id', 'code') : [];
   const missing = unique.filter((c) => !roles.some((r) => r.code === c));
@@ -131,7 +131,7 @@ async function setRoles(req, userId, codes, trx) {
 }
 
 /** Valida e grava o escopo. ALL substitui os demais. Ninguém concede escopo fora do próprio. */
-async function setScopes(req, userId, scopes, trx) {
+export async function setScopes(req, userId, scopes, trx) {
   const list = scopes.some((s) => s.type === 'ALL') ? [{ type: 'ALL' }] : scopes;
   const plantIds = list.filter((s) => s.type === 'PLANT').map((s) => s.plant_id);
   const companyIds = list.filter((s) => s.type === 'COMPANY').map((s) => s.company_id);

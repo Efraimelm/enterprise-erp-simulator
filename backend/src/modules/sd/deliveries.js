@@ -13,6 +13,7 @@ import { badRequest } from '../../lib/errors.js';
 import { nextNumber } from '../../lib/numbering.js';
 import { qty } from '../../lib/numbers.js';
 import { withTransaction } from '../../lib/tx.js';
+import { emitEvent } from '../../lib/events.js';
 import { requirePermission } from '../../middleware/auth.js';
 import { assertPlant, findScoped, pageSchema, parseId, scopePlants, zId, zQty } from '../mm/common.js';
 import { postMaterialDocument } from '../mm/stock-service.js';
@@ -136,6 +137,10 @@ deliveriesRouter.post('/deliveries/:id/post-goods-issue', requirePermission('SD.
     }
     await trx('deliveries').where({ id }).update({ status: 'POSTED', posted_by: req.user.id, posted_at: new Date(), material_doc_number: doc.docNumber });
     const status = await refreshOrderStatus(trx, so.id);
+    await emitEvent(trx, 'delivery.posted', {
+      id, number: d.number, sales_order: { id: so.id, number: so.number, status }, plant_id: d.plant_id, material_doc_number: doc.docNumber,
+      lines: items.map((i) => ({ material_id: i.material_id, storage_location_id: i.storage_location_id, quantity: i.picked_qty })),
+    }, { plantId: d.plant_id });
     await audit(req, { action: 'GOODS_ISSUE', entity: 'deliveries', entityId: id, result: 'SUCCESS', details: { numero: d.number, pedido: so.number, documento_material: doc.docNumber, status_pedido: status } }, trx);
     return deliveryDetail(req, id, trx);
   });

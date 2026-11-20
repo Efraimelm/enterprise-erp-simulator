@@ -19,7 +19,7 @@ if (-not (Test-Path (Join-Path $MariaBin 'mariadbd.exe'))) {
 # 2) .env
 if (-not (Test-Path $EnvFile)) {
     $content = Get-Content (Join-Path $Root '.env.example') -Raw
-    foreach ($name in 'DB_PASSWORD', 'DB_ROOT_PASSWORD', 'ADMIN_PASSWORD', 'AUDITOR_PASSWORD') {
+    foreach ($name in 'DB_PASSWORD', 'DB_ROOT_PASSWORD', 'ADMIN_PASSWORD', 'AUDITOR_PASSWORD', 'WEBHOOK_SECRET_KEY') {
         $content = $content -replace "CHANGE_ME_$name", (New-Secret)
     }
     Set-Content -Path $EnvFile -Value $content -Encoding utf8 -NoNewline

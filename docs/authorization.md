@@ -7,7 +7,15 @@ O acesso depende de duas perguntas, sempre respondidas no **backend**:
 
 > Paralelo com o SAP: as roles fazem o papel das roles do PFCG, e as permissões, dos objetos de autorização. O escopo lembra os valores de organização (ex.: `WERKS` para o centro). A implementação é própria e simplificada.
 
-## Permissões (44)
+## Permissões (48)
+
+Permissões acrescentadas na **Etapa 6**:
+- `ADMIN.INTEGRATION.READ` e `ADMIN.INTEGRATION.MAINTAIN`: clientes, chaves, webhooks e logs.
+- `AI.ASSISTANT.USE`: todas as roles de negócio. O que a IA mostra continua limitado às outras permissões.
+- `BI.KPI.READ`: indicadores. Fica nas roles de negócio, exceto vendedor.
+
+Nova role de sistema **INTEGRATION_READONLY**, para clientes como o n8n e o Power BI: leitura de MM, SD, estrutura e KPIs, sem escrita.
+
 
 Permissões acrescentadas depois da Etapa 2:
 - **Etapa 3:** `MM.GOODS_RECEIPT.OVERDELIVERY`, que permite receber acima do pedido dentro da tolerância do fornecedor. Está no MM_MANAGER e no SAP_ADMIN.

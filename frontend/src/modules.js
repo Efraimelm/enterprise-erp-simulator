@@ -3,7 +3,7 @@
 export const navigation = [
   {
     group: 'Visão geral',
-    items: [{ label: 'Painel', path: '/', icon: '◧' }, { label: 'Fluxo de documentos', path: '/fluxo' }],
+    items: [{ label: 'Painel', path: '/', icon: '◧' }, { label: 'Fluxo de documentos', path: '/fluxo' }, { label: 'Assistente (IA)', path: '/assistente', permission: 'AI.ASSISTANT.USE' }],
   },
   {
     group: 'Administração',
@@ -13,6 +13,7 @@ export const navigation = [
       { label: 'Usuários', path: '/admin/usuarios', permission: 'ADMIN.USER.READ' },
       { label: 'Roles e permissões', path: '/admin/roles', permission: 'ADMIN.ROLE.READ' },
       { label: 'Auditoria', path: '/admin/auditoria', icon: '⎙', permission: 'ADMIN.AUDIT.READ' },
+      { label: 'Integrações (API, webhooks)', path: '/admin/integracoes', permission: 'ADMIN.INTEGRATION.READ' },
     ],
   },
   {
@@ -41,8 +42,6 @@ export const navigation = [
   {
     group: 'Integração e análise',
     items: [
-      { label: 'Integrações (API, n8n)', stage: 6 },
-      { label: 'Assistente de IA', stage: 6 },
       { label: 'Relatórios e BI', stage: 7 },
     ],
   },
@@ -54,7 +53,7 @@ export const roadmap = [
   { stage: 3, title: 'MM', detail: 'Materiais, fornecedores, estoque, requisição, pedido, recebimento e MRP', status: 'done' },
   { stage: 4, title: 'SD', detail: 'Clientes, preços, pedido de venda, ATP, entrega, faturamento e recebimento', status: 'done' },
   { stage: 5, title: 'Integração MM + SD', detail: 'Estoque compartilhado, reservas, saídas e trilha de documentos', status: 'done' },
-  { stage: 6, title: 'n8n e IA', detail: 'API documentada, webhooks, alertas e assistente com fonte', status: 'next' },
-  { stage: 7, title: 'BI', detail: 'Indicadores, relatórios e Power BI', status: 'planned' },
+  { stage: 6, title: 'n8n e IA', detail: 'API documentada, webhooks, alertas e assistente com fonte', status: 'done' },
+  { stage: 7, title: 'BI', detail: 'Indicadores, relatórios e Power BI', status: 'next' },
   { stage: 8, title: 'Portfólio', detail: 'Testes finais, documentação, vídeos e apresentação', status: 'planned' },
 ];

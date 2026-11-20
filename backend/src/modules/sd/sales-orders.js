@@ -17,6 +17,7 @@ import { badRequest, forbidden, HttpError } from '../../lib/errors.js';
 import { nextNumber } from '../../lib/numbering.js';
 import { money, qty } from '../../lib/numbers.js';
 import { withTransaction } from '../../lib/tx.js';
+import { emitEvent } from '../../lib/events.js';
 import { requirePermission } from '../../middleware/auth.js';
 import { assertMaterialForPlant, assertPlant, assertSlocInPlant, findScoped, history, like, pageSchema, parseId, scopePlants, zDate, zId, zOptText, zQty } from '../mm/common.js';
 import { availableQty, releaseStock, reserveStock } from '../mm/stock-service.js';
@@ -223,6 +224,10 @@ salesOrdersRouter.post('/sales-orders', requirePermission('SD.SALES_ORDER.CREATE
     });
     await trx('sales_order_items').insert(rows.map((r) => ({ ...r, sales_order_id: id })));
     await audit(req, { action: 'CREATE', entity: 'sales_orders', entityId: id, result: 'SUCCESS', details: { numero: number, cliente: customer.code, ...totals } }, trx);
+    await emitEvent(trx, 'sales_order.created', {
+      id, number, customer: { id: customer.id, code: customer.code, name: customer.name }, plant_id: body.plant_id,
+      requested_date: body.requested_date, total_gross: totals.total_gross, currency,
+    }, { plantId: body.plant_id });
     return orderDetail(req, id, trx);
   });
   res.status(201).json({ data });
@@ -250,6 +255,14 @@ salesOrdersRouter.put('/sales-orders/:id', requirePermission('SD.SALES_ORDER.CRE
   res.json({ data });
 });
 
+async function emitSoConfirmed(trx, so, atp) {
+  const c = await trx('customers').where({ id: so.customer_id }).first('code', 'name');
+  await emitEvent(trx, 'sales_order.confirmed', {
+    id: so.id, number: so.number, customer: { id: so.customer_id, code: c.code, name: c.name }, plant_id: so.plant_id,
+    total_gross: so.total_gross, currency: so.currency, items: atp, fully_confirmed: atp.every((i) => i.confirmado >= i.pedido),
+  }, { plantId: so.plant_id });
+}
+
 async function transition(req, res, { code, label, from, run }) {
   const id = parseId(req.params.id, 'Pedido de venda');
   const data = await withTransaction(async (trx) => {
@@ -276,6 +289,7 @@ salesOrdersRouter.post('/sales-orders/:id/submit', requirePermission('SD.SALES_O
         status: 'CONFIRMED', submitted_at: new Date(), confirmed_at: new Date(), auto_approved: true, approved_by: null, approved_at: new Date(),
         status_note: `Confirmado sem aprovação (total ≤ limite de ${limit.toFixed(2)})`,
       });
+      await emitSoConfirmed(trx, so, atp);
       return { para: 'CONFIRMED', confirmacao_automatica: true, atp };
     },
   }));
@@ -290,6 +304,7 @@ salesOrdersRouter.post('/sales-orders/:id/approve', requirePermission('SD.SALES_
       }
       const atp = await confirmOrder(trx, so);
       await trx('sales_orders').where({ id: so.id }).update({ status: 'CONFIRMED', approved_by: req.user.id, approved_at: new Date(), confirmed_at: new Date(), status_note: null });
+      await emitSoConfirmed(trx, so, atp);
       return { para: 'CONFIRMED', atp };
     },
   }));

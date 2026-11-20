@@ -24,8 +24,14 @@ import { salesOrdersRouter } from './modules/sd/sales-orders.js';
 import { deliveriesRouter } from './modules/sd/deliveries.js';
 import { billingRouter } from './modules/sd/billing.js';
 import { flowRouter } from './modules/flow/flow.js';
+import rateLimit from 'express-rate-limit';
+import { idempotency } from './middleware/idempotency.js';
+import { kpisRouter } from './modules/integration/kpis.js';
+import { integrationRouter } from './modules/integration/admin.js';
+import { openApiRouter } from './modules/integration/openapi.js';
+import { assistantRouter } from './modules/assistant/routes.js';
 
-export function createApp({ loginRateLimit = config.login.rateLimit } = {}) {
+export function createApp({ loginRateLimit = config.login.rateLimit, apiKeyRateLimit = config.integration.apiKeyRateLimit } = {}) {
   const app = express();
   app.disable('x-powered-by');
 
@@ -39,8 +45,22 @@ export function createApp({ loginRateLimit = config.login.rateLimit } = {}) {
     res.json({ status: 'ok', database: 'ok', environment: config.env, time: new Date().toISOString() });
   });
 
+  // Documentação OpenAPI/Swagger (pública: descreve a API, não expõe dados).
+  app.use('/api', openApiRouter);
+
   app.use('/api', csrfProtection);
   app.use('/api', loadSession);
+  // Limite por chave de API (só para chamadas de integração).
+  app.use('/api', rateLimit({
+    windowMs: 60_000,
+    limit: apiKeyRateLimit,
+    skip: (req) => !req.apiKey,
+    keyGenerator: (req) => `key:${req.apiKey?.prefix}`,
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+    handler: (req, res) => res.status(429).json({ error: { code: 'TOO_MANY_REQUESTS', message: 'Limite de chamadas da chave de API atingido. Tente em 1 minuto.' } }),
+  }));
+  app.use('/api', idempotency);
   app.use('/api/auth', authRouter({ loginRateLimit }));
   app.use('/api/org', orgRouter);
   app.use('/api/settings', settingsRouter);
@@ -50,6 +70,9 @@ export function createApp({ loginRateLimit = config.login.rateLimit } = {}) {
   app.use('/api/mm', masterDataRouter, stockRouter, purchasingRouter, goodsReceiptsRouter, mrpRouter);
   app.use('/api/sd', sdMasterRouter, salesOrdersRouter, deliveriesRouter, billingRouter);
   app.use('/api/flow', flowRouter);
+  app.use('/api/kpis', kpisRouter);
+  app.use('/api/integration', integrationRouter);
+  app.use('/api/assistant', assistantRouter);
 
   app.use('/api', (req, res) => res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Rota não encontrada.' } }));
   app.use(errorHandler);

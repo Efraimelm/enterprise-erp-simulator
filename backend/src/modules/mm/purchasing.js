@@ -26,6 +26,7 @@ import { badRequest, forbidden, HttpError } from '../../lib/errors.js';
 import { nextNumber } from '../../lib/numbering.js';
 import { money, qty } from '../../lib/numbers.js';
 import { withTransaction } from '../../lib/tx.js';
+import { emitEvent } from '../../lib/events.js';
 import { requirePermission } from '../../middleware/auth.js';
 import {
   assertMaterialForPlant, assertPlant, assertSlocInPlant, findScoped, history, like, pageSchema, parseId, scopePlants,
@@ -77,6 +78,12 @@ export async function createRequisition(trx, { plantId, requesterId, source, jus
   const number = await nextNumber(trx, 'PURCHASE_REQ');
   const [id] = await trx('purchase_requisitions').insert({ number, plant_id: plantId, requester_id: requesterId, source, status: 'PENDING_APPROVAL', justification });
   await trx('purchase_requisition_items').insert(rows.map((r) => ({ ...r, requisition_id: id })));
+  const plantCode = (await trx('plants').where({ id: plantId }).first('code')).code;
+  await emitEvent(trx, 'purchase_requisition.created', {
+    id, number, plant: { id: plantId, code: plantCode }, source, justification,
+    items: rows.map((r) => ({ item_no: r.item_no, material_id: r.material_id, quantity: r.quantity, need_date: r.need_date })),
+    estimated_value: money(rows.reduce((s, r) => s + r.quantity * r.estimated_price, 0)),
+  }, { plantId });
   return { id, number };
 }
 
@@ -412,6 +419,15 @@ purchasingRouter.put('/purchase-orders/:id', requirePermission('MM.PURCHASE_ORDE
   res.json({ data });
 });
 
+async function emitPoApproved(trx, po, auto) {
+  const s = await trx('suppliers').where({ id: po.supplier_id }).first('code', 'name');
+  const p = await trx('plants').where({ id: po.plant_id }).first('code');
+  await emitEvent(trx, 'purchase_order.approved', {
+    id: po.id, number: po.number, supplier: { id: po.supplier_id, code: s.code, name: s.name }, plant: { id: po.plant_id, code: p.code },
+    total_gross: po.total_gross, currency: po.currency, delivery_date: po.delivery_date, auto_approved: auto,
+  }, { plantId: po.plant_id });
+}
+
 /** Executa uma transição de status do pedido com trava, escopo e auditoria. */
 async function transition(req, res, { action, from, run }) {
   const id = parseId(req.params.id, 'Pedido de compra');
@@ -436,6 +452,7 @@ purchasingRouter.post('/purchase-orders/:id/submit', requirePermission('MM.PURCH
         status: auto ? 'APPROVED' : 'PENDING_APPROVAL', submitted_at: new Date(), auto_approved: auto,
         approved_at: auto ? new Date() : null, approved_by: null, status_note: auto ? `Aprovado automaticamente (total ≤ limite de ${limit.toFixed(2)})` : null,
       });
+      if (auto) await emitPoApproved(trx, po, true);
       return { para: auto ? 'APPROVED' : 'PENDING_APPROVAL', aprovacao_automatica: auto, limite: limit, total: po.total_gross };
     },
   }));
@@ -450,6 +467,7 @@ purchasingRouter.post('/purchase-orders/:id/approve', requirePermission('MM.PURC
         throw segregation('o pedido');
       }
       await trx('purchase_orders').where({ id: po.id }).update({ status: 'APPROVED', approved_by: req.user.id, approved_at: new Date(), status_note: null });
+      await emitPoApproved(trx, po, false);
       return { para: 'APPROVED' };
     },
   }));

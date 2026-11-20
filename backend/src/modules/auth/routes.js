@@ -40,7 +40,8 @@ export function authRouter({ loginRateLimit = config.login.rateLimit } = {}) {
     const { username, password } = loginSchema.parse(req.body);
     const user = await db('users').where({ username }).first();
 
-    if (!user) {
+    // Usuário técnico (cliente de integração) não entra pela tela: responde como usuário inexistente.
+    if (!user || user.is_technical) {
       await verifyAgainstDummy(password);
       await audit(req, { action: 'LOGIN', result: 'FAILURE', details: { username, motivo: 'usuário inexistente' } });
       throw invalidCredentials();

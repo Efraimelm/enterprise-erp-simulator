@@ -1,0 +1,113 @@
+{
+  "name": "10 - ERP: receber eventos (webhook assinado)",
+  "nodes": [
+    {
+      "id": "e1000000-0000-4000-8000-000000000001",
+      "name": "Webhook ERP",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "webhookId": "e1000000-0000-4000-8000-0000000000a1",
+      "notes": "URL de produção: http://localhost:5678/webhook/erp-eventos (publique o fluxo). Cadastre esta URL em ERP → Administração → Integrações → Webhooks.",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "erp-eventos",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "e1000000-0000-4000-8000-000000000002",
+      "name": "Calcular assinatura esperada (HMAC-SHA256)",
+      "type": "n8n-nodes-base.crypto",
+      "typeVersion": 1,
+      "position": [240, 0],
+      "notes": "Troque COLE_AQUI_O_SEGREDO_DO_WEBHOOK pelo segredo mostrado pelo ERP ao criar o webhook. Nunca versione o segredo real.",
+      "parameters": {
+        "action": "hmac",
+        "type": "SHA256",
+        "value": "={{ $json.headers['x-erp-timestamp'] + '.' + JSON.stringify($json.body) }}",
+        "dataPropertyName": "assinatura_esperada",
+        "secret": "COLE_AQUI_O_SEGREDO_DO_WEBHOOK",
+        "encoding": "hex"
+      }
+    },
+    {
+      "id": "e1000000-0000-4000-8000-000000000003",
+      "name": "Assinatura e horário válidos?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [480, 0],
+      "notes": "Confere a assinatura e recusa mensagens com mais de 5 minutos (proteção contra reenvio malicioso).",
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "typeValidation": "loose", "version": 2 },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.headers['x-erp-signature'] }}",
+              "rightValue": "={{ 'sha256=' + $json.assinatura_esperada }}",
+              "operator": { "type": "string", "operation": "equals" }
+            },
+            {
+              "id": "c2",
+              "leftValue": "={{ Math.abs(Math.floor(Date.now() / 1000) - Number($json.headers['x-erp-timestamp'])) }}",
+              "rightValue": 300,
+              "operator": { "type": "number", "operation": "lte" }
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "e1000000-0000-4000-8000-000000000004",
+      "name": "Montar alerta por tipo de evento",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [720, -100],
+      "notes": "Próximo passo: ligar a saída a um nó de e-mail, Teams ou Telegram.",
+      "parameters": {
+        "jsCode": "// Transforma o evento do ERP em uma mensagem de alerta legível.\nconst ev = $input.first().json.body;\nconst d = ev.data || {};\nconst brl = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });\nconst textos = {\n  'stock.below_reorder_point': () => `⚠️ Estoque baixo: ${d.material?.code} (${d.material?.description}) no ${d.plant?.code} — disponível ${d.available_qty}, ponto ${d.reorder_point}. Avisar Compras.`,\n  'purchase_requisition.created': () => `🧾 Requisição ${d.number} criada no ${d.plant?.code} (${d.source}), estimado ${brl(d.estimated_value)}. Aguarda aprovação.`,\n  'purchase_order.approved': () => `✅ Pedido de compra ${d.number} aprovado${d.auto_approved ? ' automaticamente' : ''}: ${d.supplier?.name}, ${brl(d.total_gross)}, entrega ${d.delivery_date}.`,\n  'goods_receipt.posted': () => `📦 Recebimento ${d.doc_number} do pedido ${d.purchase_order?.number} (${d.purchase_order?.status}).`,\n  'sales_order.created': () => `🛒 Pedido de venda ${d.number} para ${d.customer?.name}: ${brl(d.total_gross)}.`,\n  'sales_order.confirmed': () => `🔒 Pedido de venda ${d.number} confirmado (${d.fully_confirmed ? 'total' : 'parcial'}).`,\n  'delivery.posted': () => `🚚 Entrega ${d.number} saiu (documento ${d.material_doc_number}) — pedido ${d.sales_order?.number}.`,\n  'billing.created': () => `💰 Fatura ${d.number} para ${d.customer?.name}: ${brl(d.total_gross)}, vence ${d.due_date}.`,\n  'integration.ping': () => `🔔 Teste de conexão do ERP recebido (${d.requested_by}).`,\n};\nconst mensagem = (textos[ev.type] || (() => `Evento ${ev.type} recebido.`))();\nreturn [{ json: { evento: ev.type, evento_id: ev.id, ocorreu_em: ev.occurred_at, mensagem, assinatura_valida: true } }];"
+      }
+    },
+    {
+      "id": "e1000000-0000-4000-8000-000000000005",
+      "name": "Responder 200 (recebido)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [960, -100],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { received: true, event_id: $json.evento_id, mensagem: $json.mensagem } }}",
+        "options": { "responseCode": 200 }
+      }
+    },
+    {
+      "id": "e1000000-0000-4000-8000-000000000006",
+      "name": "Responder 401 (assinatura inválida)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [720, 120],
+      "notes": "O ERP registra a falha e tenta de novo (1 min, 5 min, 30 min, 2 h, 6 h).",
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { received: false, error: 'assinatura inválida ou mensagem expirada' } }}",
+        "options": { "responseCode": 401 }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook ERP": { "main": [[{ "node": "Calcular assinatura esperada (HMAC-SHA256)", "type": "main", "index": 0 }]] },
+    "Calcular assinatura esperada (HMAC-SHA256)": { "main": [[{ "node": "Assinatura e horário válidos?", "type": "main", "index": 0 }]] },
+    "Assinatura e horário válidos?": {
+      "main": [
+        [{ "node": "Montar alerta por tipo de evento", "type": "main", "index": 0 }],
+        [{ "node": "Responder 401 (assinatura inválida)", "type": "main", "index": 0 }]
+      ]
+    },
+    "Montar alerta por tipo de evento": { "main": [[{ "node": "Responder 200 (recebido)", "type": "main", "index": 0 }]] }
+  },
+  "settings": {}
+}

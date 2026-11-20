@@ -1,0 +1,52 @@
+{
+  "name": "11 - ERP: resumo operacional diário (API + chave)",
+  "nodes": [
+    {
+      "id": "e1100000-0000-4000-8000-000000000001",
+      "name": "Executar agora",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 0],
+      "parameters": {}
+    },
+    {
+      "id": "e1100000-0000-4000-8000-000000000002",
+      "name": "Todo dia às 7h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 200],
+      "parameters": { "rule": { "interval": [{ "field": "days", "triggerAtHour": 7 }] } }
+    },
+    {
+      "id": "e1100000-0000-4000-8000-000000000003",
+      "name": "ERP - indicadores (GET /api/kpis/summary)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [260, 100],
+      "notes": "Credencial 'Header Auth': Name = Authorization, Value = Bearer <chave de API do ERP>. A chave é somente leitura.",
+      "parameters": {
+        "url": "http://localhost:3001/api/kpis/summary",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": { "timeout": 15000 }
+      }
+    },
+    {
+      "id": "e1100000-0000-4000-8000-000000000004",
+      "name": "Montar resumo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [520, 100],
+      "notes": "Próximo passo: enviar por e-mail ou Teams.",
+      "parameters": {
+        "jsCode": "const k = $input.first().json.data;\nconst brl = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });\nconst linhas = [\n  `📊 Resumo operacional — ${new Date(k.generated_at).toLocaleString('pt-BR')}`,\n  '',\n  `Estoque: ${k.estoque.materiais_abaixo_do_ponto} material(is) no ponto de reposição; reposição estimada ${brl(k.estoque.valor_estimado_reposicao)}.`,\n  ...k.estoque.itens_criticos.map((i) => `  • ${i.material} (${i.centro}): disponível ${i.disponivel}, ponto ${i.ponto}, sugerido ${i.sugerido}`),\n  `Compras: ${k.compras.requisicoes_aguardando} RC e ${k.compras.pedidos_aguardando_aprovacao} PC aguardando aprovação; ${k.compras.pedidos_em_aberto} PC em aberto (${brl(k.compras.valor_pedidos_em_aberto)}), ${k.compras.pedidos_atrasados} atrasado(s).`,\n  `Vendas: ${k.vendas.pedidos_a_entregar} pedido(s) a entregar (${brl(k.vendas.valor_pedidos_a_entregar)}); faturamento do mês ${brl(k.vendas.faturamento_mes)}.`,\n  `Financeiro: ${brl(k.financeiro.valor_em_aberto)} a receber; ${k.financeiro.titulos_atrasados} título(s) atrasado(s) (${brl(k.financeiro.valor_atrasado)}).`,\n  '',\n  'Fonte: Enterprise ERP Simulator — GET /api/kpis/summary (fórmulas em data.definitions).',\n];\nreturn [{ json: { resumo: linhas.join('\\n'), indicadores: k } }];"
+      }
+    }
+  ],
+  "connections": {
+    "Executar agora": { "main": [[{ "node": "ERP - indicadores (GET /api/kpis/summary)", "type": "main", "index": 0 }]] },
+    "Todo dia às 7h": { "main": [[{ "node": "ERP - indicadores (GET /api/kpis/summary)", "type": "main", "index": 0 }]] },
+    "ERP - indicadores (GET /api/kpis/summary)": { "main": [[{ "node": "Montar resumo", "type": "main", "index": 0 }]] }
+  },
+  "settings": {}
+}

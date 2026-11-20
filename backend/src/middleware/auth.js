@@ -6,7 +6,8 @@ import crypto from 'node:crypto';
 import { db } from '../db.js';
 import { config } from '../config.js';
 import { audit } from '../lib/audit.js';
-import { forbidden, unauthorized } from '../lib/errors.js';
+import { forbidden, HttpError, unauthorized } from '../lib/errors.js';
+import { safeEqualHex, sha256 } from '../lib/crypto.js';
 import { loadScope } from '../lib/scope.js';
 
 export const hashToken = (token) => crypto.createHash('sha256').update(token).digest('hex');
@@ -36,7 +37,39 @@ export async function denyOutOfScope(req, details) {
   return forbidden('Este registro está fora do seu escopo organizacional (empresas e centros liberados para você).', 'OUT_OF_SCOPE');
 }
 
+/** `Authorization: Bearer erp_<prefixo>_<segredo>` → chave de API de um cliente de integração. */
+export const bearerKey = (req) => {
+  const h = req.get('authorization') || '';
+  const m = /^Bearer (erp_([A-Za-z0-9]{8})_[A-Za-z0-9_-]{20,100})$/.exec(h);
+  return m ? { full: m[1], prefix: m[2] } : null;
+};
+
+async function loadApiKey(req, res, presented) {
+  const key = await db('api_keys').where({ prefix: presented.prefix }).first();
+  const valid = key && !key.revoked_at && (!key.expires_at || new Date(key.expires_at) > new Date()) && safeEqualHex(key.key_hash, sha256(presented.full));
+  if (!valid) throw new HttpError(401, 'INVALID_API_KEY', 'Chave de API inválida, revogada ou expirada.');
+  const user = await loadUserContext(key.user_id);
+  if (!user || user.status !== 'ACTIVE') throw new HttpError(401, 'INVALID_API_KEY', 'Cliente de integração bloqueado ou inativo.');
+  // Nesta etapa a integração é só de leitura.
+  if (!['GET', 'HEAD'].includes(req.method)) throw new HttpError(403, 'READ_ONLY_KEY', 'Chaves de API são somente leitura nesta versão.');
+  req.user = user;
+  req.apiKey = { id: key.id, name: key.name, prefix: key.prefix };
+  await db('api_keys').where({ id: key.id }).update({ last_used_at: new Date() });
+  // Log da chamada (sem corpo), gravado ao fim da resposta.
+  const started = Date.now();
+  res.on('finish', () => {
+    db('integration_logs').insert({
+      direction: 'IN', api_key_id: key.id, method: req.method, target: req.originalUrl.slice(0, 500), status_code: res.statusCode, duration_ms: Date.now() - started,
+    }).catch(() => {});
+  });
+}
+
 export async function loadSession(req, res, next) {
+  const presented = bearerKey(req);
+  if (presented) {
+    await loadApiKey(req, res, presented);
+    return next();
+  }
   const token = req.cookies?.[config.session.cookieName];
   if (!token || token.length > 100) return next();
   const session = await db('sessions')

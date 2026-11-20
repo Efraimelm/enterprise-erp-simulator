@@ -20,6 +20,10 @@ export const PERMISSIONS = [
   ['ADMIN.ROLE.READ', 'ADMIN', 'Consultar roles e permissões'],
   ['ADMIN.ROLE.MAINTAIN', 'ADMIN', 'Criar e alterar roles personalizadas'],
   ['ADMIN.ROLE.ASSIGN', 'ADMIN', 'Atribuir roles e escopo organizacional a usuários'],
+  ['ADMIN.INTEGRATION.READ', 'ADMIN', 'Consultar clientes de integração, webhooks, eventos e logs'],
+  ['ADMIN.INTEGRATION.MAINTAIN', 'ADMIN', 'Criar e revogar chaves de API e manter webhooks'],
+  ['AI.ASSISTANT.USE', 'AI', 'Usar o assistente de IA (só consulta, com as permissões do próprio usuário)'],
+  ['BI.KPI.READ', 'BI', 'Consultar indicadores consolidados (painel, n8n e Power BI)'],
   // MM
   ['MM.MATERIAL.READ', 'MM', 'Consultar materiais'],
   ['MM.MATERIAL.CREATE', 'MM', 'Criar materiais'],
@@ -58,6 +62,8 @@ export const PERMISSIONS = [
 const ALL = PERMISSIONS.map((p) => p[0]);
 const of = (prefix) => ALL.filter((p) => p.startsWith(prefix));
 const reads = (prefix) => of(prefix).filter((p) => p.endsWith('.READ'));
+// Todas as roles de negócio usam o assistente (limitado às próprias permissões) e leem os KPIs.
+const BUSINESS = ['AI.ASSISTANT.USE', 'BI.KPI.READ'];
 
 export const ROLES = {
   SAP_ADMIN: {
@@ -68,14 +74,14 @@ export const ROLES = {
   MM_MANAGER: {
     name: 'Gestor de Materiais',
     description: 'Tudo em MM, inclusive aprovações e ajuste de estoque.',
-    permissions: [...of('MM.'), 'ADMIN.ORG.READ'],
+    permissions: [...of('MM.'), 'ADMIN.ORG.READ', ...BUSINESS],
   },
   MM_ANALYST: {
     name: 'Analista de Materiais',
     description: 'Mantém materiais e fornecedores, cria requisições e roda o MRP. Não aprova.',
     permissions: [
       ...reads('MM.'), 'MM.MATERIAL.CREATE', 'MM.MATERIAL.UPDATE', 'MM.SUPPLIER.CREATE', 'MM.SUPPLIER.UPDATE',
-      'MM.PURCHASE_REQ.CREATE', 'MM.MRP.RUN', 'ADMIN.ORG.READ',
+      'MM.PURCHASE_REQ.CREATE', 'MM.MRP.RUN', 'ADMIN.ORG.READ', ...BUSINESS,
     ],
   },
   PROCUREMENT: {
@@ -83,7 +89,7 @@ export const ROLES = {
     description: 'Fornecedores, requisições e pedidos de compra. Não aprova.',
     permissions: [
       'MM.MATERIAL.READ', 'MM.SUPPLIER.READ', 'MM.SUPPLIER.CREATE', 'MM.SUPPLIER.UPDATE', 'MM.PURCHASE_REQ.READ',
-      'MM.PURCHASE_REQ.CREATE', 'MM.PURCHASE_ORDER.READ', 'MM.PURCHASE_ORDER.CREATE', 'MM.STOCK.READ', 'ADMIN.ORG.READ',
+      'MM.PURCHASE_REQ.CREATE', 'MM.PURCHASE_ORDER.READ', 'MM.PURCHASE_ORDER.CREATE', 'MM.STOCK.READ', 'ADMIN.ORG.READ', ...BUSINESS,
     ],
   },
   WAREHOUSE: {
@@ -91,20 +97,20 @@ export const ROLES = {
     description: 'Recebe mercadorias, consulta estoque e registra entregas.',
     permissions: [
       'MM.MATERIAL.READ', 'MM.PURCHASE_ORDER.READ', 'MM.GOODS_RECEIPT.POST', 'MM.STOCK.READ',
-      'SD.SALES_ORDER.READ', 'SD.DELIVERY.CREATE', 'ADMIN.ORG.READ',
+      'SD.SALES_ORDER.READ', 'SD.DELIVERY.CREATE', 'ADMIN.ORG.READ', ...BUSINESS,
     ],
   },
   SD_MANAGER: {
     name: 'Gestor de Vendas',
     description: 'Tudo em SD, inclusive aprovações e estornos.',
-    permissions: [...of('SD.'), 'MM.MATERIAL.READ', 'MM.STOCK.READ', 'ADMIN.ORG.READ'],
+    permissions: [...of('SD.'), 'MM.MATERIAL.READ', 'MM.STOCK.READ', 'ADMIN.ORG.READ', ...BUSINESS],
   },
   SD_ANALYST: {
     name: 'Analista de Vendas',
     description: 'Clientes, pedidos, entregas e faturamento. Não aprova nem estorna.',
     permissions: [
       ...reads('SD.'), 'SD.CUSTOMER.CREATE', 'SD.CUSTOMER.UPDATE', 'SD.SALES_ORDER.CREATE', 'SD.DELIVERY.CREATE',
-      'SD.BILLING.CREATE', 'MM.MATERIAL.READ', 'MM.STOCK.READ', 'ADMIN.ORG.READ',
+      'SD.BILLING.CREATE', 'MM.MATERIAL.READ', 'MM.STOCK.READ', 'ADMIN.ORG.READ', ...BUSINESS,
     ],
   },
   SALES: {
@@ -112,8 +118,13 @@ export const ROLES = {
     description: 'Consulta clientes, preços e estoque e cria pedidos de venda.',
     permissions: [
       'SD.CUSTOMER.READ', 'SD.CUSTOMER.CREATE', 'SD.PRICE.READ', 'SD.SALES_ORDER.READ', 'SD.SALES_ORDER.CREATE',
-      'MM.MATERIAL.READ', 'MM.STOCK.READ', 'ADMIN.ORG.READ',
+      'MM.MATERIAL.READ', 'MM.STOCK.READ', 'ADMIN.ORG.READ', 'AI.ASSISTANT.USE',
     ],
+  },
+  INTEGRATION_READONLY: {
+    name: 'Integração (somente leitura)',
+    description: 'Para clientes de integração (n8n, Power BI): lê MM, SD, estrutura e KPIs. Não escreve.',
+    permissions: [...reads('MM.'), ...reads('SD.'), 'ADMIN.ORG.READ', 'BI.KPI.READ'],
   },
   AUDITOR: {
     name: 'Auditor',
