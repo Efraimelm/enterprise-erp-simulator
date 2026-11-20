@@ -7,6 +7,18 @@ ERP web próprio, de portfólio e para estudo, que **simula** processos empresar
 **Autor:** Efraim Lima · Sistemas de Informação (Unasp-HT) · objetivo de carreira: Consultor SAP
 **Projeto relacionado:** [Copiloto de Operações SAP com n8n](https://github.com/Efraimelm/copiloto-sap-n8n). Ele se liga a este ERP pela API própria (Etapa 6).
 
+## Para que serve
+
+- **Aprender ERP por dentro.** O projeto reproduz, em código próprio, as regras que um consultor SAP MM/SD precisa entender:
+  - estrutura organizacional;
+  - ciclo de compras (P2P) e ciclo de vendas (O2C);
+  - estoque por documento de material, reserva e ATP;
+  - aprovações, segregação de funções e trilha de documentos.
+- **Portfólio.** Mostra, funcionando e testado (195 testes), que o autor entende os processos e sabe integrá-los com API, n8n, IA e Power BI.
+- **Estudo e demonstração.** Qualquer pessoa pode instalar no Windows e seguir o [guia passo a passo](docs/guia-passo-a-passo.md), da instalação à integração com o n8n.
+
+> **Comece por aqui:** [docs/guia-passo-a-passo.md](docs/guia-passo-a-passo.md)
+
 ## Situação atual
 
 | Etapa | Conteúdo | Situação |
@@ -87,5 +99,6 @@ O passo a passo completo, com os erros comuns, está em [docs/setup-windows.md](
 | [docs/test-cases.md](docs/test-cases.md) | Casos de teste e cenários de aceitação |
 | [docs/setup-windows.md](docs/setup-windows.md) | Instalação e execução no Windows |
 | [docs/progress.md](docs/progress.md) | Decisões técnicas, o que foi concluído e as pendências |
+| [docs/guia-passo-a-passo.md](docs/guia-passo-a-passo.md) | **Guia passo a passo**: instalar, ligar e testar cada processo, até o n8n |
 | [docs/demo-script.md](docs/demo-script.md) | Roteiro de demonstração (10 minutos e três vídeos curtos) |
 | [docs/apresentacao.md](docs/apresentacao.md) | Como apresentar o projeto: pitch, implementado × simulado, ponte com conceitos SAP e texto para o LinkedIn |
