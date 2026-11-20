@@ -33,6 +33,7 @@ Exemplo: recebimentos de 10 (PC A) e de 10 (PC B), depois uma venda de 15 → a 
 | D28 | Trilha montada por **consulta** às chaves que já existem, **sem** tabela `document_links` | Todo vínculo já está gravado nos documentos (item da RC → item do PC, recebimento → PC, movimento → origem, entrega → pedido, fatura → entrega, título → fatura, pagamento → título). Uma tabela de vínculos duplicaria isso, e a especificação pede para evitar duplicação |
 | D29 | Ligação compra ↔ venda por **FIFO simulado** sobre os movimentos | Sem lote, é a forma mais simples e determinística de responder "de onde veio". O cálculo é refeito a cada consulta, nunca gravado |
 | D30 | A trilha respeita **escopo e permissões**. Documento de outro centro, ou de um tipo que o usuário não pode ler, não aparece, e a trilha não passa por ele. A tela mostra apenas quantos foram ocultados | A especificação proíbe revelar dados fora do escopo |
+| D29b | **Linhagem pelo FIFO** (Etapa 8): quem sobe por uma ligação FIFO continua só subindo, e quem desce continua só descendo | Sem isso, a trilha de uma venda subia até a carga inicial e descia para todas as outras vendas abastecidas por ela. Com o histórico de demonstração, isso chegava a 150 documentos. Agora a trilha mostra só a história do documento. A trilha a partir da carga ainda mostra todas as vendas que ela abasteceu |
 | D31 | Limite de 150 documentos por trilha, com aviso de "trilha truncada" | Um documento de carga inicial pode alimentar dezenas de vendas. O limite mantém a tela legível e a consulta rápida |
 
 ## 5. API

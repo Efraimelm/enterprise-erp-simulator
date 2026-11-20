@@ -55,5 +55,5 @@ export const roadmap = [
   { stage: 5, title: 'Integração MM + SD', detail: 'Estoque compartilhado, reservas, saídas e trilha de documentos', status: 'done' },
   { stage: 6, title: 'n8n e IA', detail: 'API documentada, webhooks, alertas e assistente com fonte', status: 'done' },
   { stage: 7, title: 'BI', detail: 'Indicadores, relatórios e Power BI', status: 'done' },
-  { stage: 8, title: 'Portfólio', detail: 'Testes finais, documentação, vídeos e apresentação', status: 'next' },
+  { stage: 8, title: 'Portfólio', detail: 'Histórico de demonstração, revisão final, capturas, roteiro e guia de apresentação', status: 'done' },
 ];

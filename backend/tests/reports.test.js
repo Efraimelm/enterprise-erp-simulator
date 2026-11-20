@@ -63,7 +63,8 @@ beforeAll(async () => {
   await admin.post(`/api/sd/billing/${s2.bill.id}/cancel`).set(H).send({ reason: 'Teste de estorno no BI' });
   const s3 = await sell(B, 2, { deliver: false }); // aberto: 2 × 50 × 1,18 = 118
   const s4 = await sell(A, 1, { billDate: day(-45) }); // 30 + 5,40 = 35,40, venceu há 15 dias
-  docs = { po1, po2, s1, s3, s4 };
+  const s5 = await sell(B, 1, { billDate: day(-45) }); // outra categoria no mesmo dia: 50 + 9 = 59, venceu há 15 dias
+  docs = { po1, po2, s1, s3, s4, s5 };
 });
 afterAll(() => db.destroy());
 
@@ -73,8 +74,8 @@ describe('estoque', () => {
     const a = res.body.data.find((r) => r.material === A.code);
     const b = res.body.data.find((r) => r.material === B.code);
     expect(a).toMatchObject({ fisico: 61, reservado: 0, disponivel: 61, valor: 610, abaixo_do_ponto: true }); // 100 + 2 − 40 − 1
-    expect(b).toMatchObject({ fisico: 7, reservado: 2, disponivel: 5, valor: 140, abaixo_do_ponto: true }); // 10 − 3, 2 reservados
-    expect(res.body.totals.valor).toBe(750);
+    expect(b).toMatchObject({ fisico: 6, reservado: 2, disponivel: 4, valor: 120, abaixo_do_ponto: true }); // 10 − 3 − 1, 2 reservados
+    expect(res.body.totals.valor).toBe(730);
     expect(res.body.meta.definition).toMatch(/preço de referência/);
   });
 
@@ -107,7 +108,11 @@ describe('vendas e financeiro', () => {
     const res = await get('sales-by-period', `&from=${day(-60)}&to=${day(0)}&group=month`);
     const ofA = res.body.data.filter((r) => r.categoria === A.category);
     expect(ofA.reduce((s, r) => s + r.liquido, 0)).toBeCloseTo(1230, 2); // 1.200 + 30
-    expect(res.body.data.filter((r) => r.categoria === B.category)).toEqual([]);
+    // B: só a venda de 1 unidade (a de 3 foi estornada). Fica numa linha própria no mesmo mês da venda de A.
+    const ofB = res.body.data.filter((r) => r.categoria === B.category);
+    expect(ofB).toEqual([expect.objectContaining({ periodo: day(-45).slice(0, 7), liquido: 50, faturas: 1 })]);
+    expect(ofA.find((r) => r.periodo === day(-45).slice(0, 7))).toMatchObject({ liquido: 30, faturas: 1 });
+    expect(res.body.totals.por_categoria[B.category]).toBe(50);
     const month = day(0).slice(0, 7);
     expect(ofA.find((r) => r.periodo === month)).toMatchObject({ liquido: 1200, imposto: 216, bruto: 1416, quantidade: 40, faturas: 1 });
     expect(res.body.totals.por_categoria[A.category]).toBe(1230);
@@ -115,7 +120,9 @@ describe('vendas e financeiro', () => {
 
   it('agrupamento por dia', async () => {
     const res = await get('sales-by-period', `&from=${day(-60)}&to=${day(0)}&group=day`);
-    expect(res.body.data.find((r) => r.periodo === day(-45))).toMatchObject({ liquido: 30, bruto: 35.4 });
+    const sameDay = res.body.data.filter((r) => r.periodo === day(-45));
+    expect(sameDay.find((r) => r.categoria === A.category)).toMatchObject({ liquido: 30, bruto: 35.4 });
+    expect(sameDay.find((r) => r.categoria === B.category)).toMatchObject({ liquido: 50, bruto: 59 });
   });
 
   it('pedidos de venda em aberto: pendente, valor com imposto e atraso', async () => {
@@ -125,8 +132,8 @@ describe('vendas e financeiro', () => {
 
   it('contas a receber por faixa de vencimento', async () => {
     const res = await get('receivables-aging');
-    expect(res.body.data).toEqual([expect.objectContaining({ titulos: 2, a_vencer: 1416, d1_30: 35.4, d31_60: 0, total: 1451.4 })]);
-    expect(res.body.totals).toMatchObject({ titulos: 2, a_vencer: 1416, d1_30: 35.4, total: 1451.4 });
+    expect(res.body.data).toEqual([expect.objectContaining({ titulos: 3, a_vencer: 1416, d1_30: 94.4, d31_60: 0, total: 1510.4 })]);
+    expect(res.body.totals).toMatchObject({ titulos: 3, a_vencer: 1416, d1_30: 94.4, total: 1510.4 });
   });
 });
 

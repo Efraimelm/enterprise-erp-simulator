@@ -164,7 +164,7 @@ describe('cenário completo: da requisição de compra ao pagamento da venda', (
 });
 
 describe('transferência 311 continua a trilha no outro depósito', () => {
-  it('venda pelo depósito 0002 rastreia a carga inicial feita no 0001', async () => {
+  it('venda pelo depósito 0002 rastreia a carga inicial feita no 0001, sem puxar vendas irmãs', async () => {
     const { admin, vendedor, almox } = agents;
     const m = await newProduct({ stock: 10 }); // 561 no depósito 0001
     const load = (await db('stock_movements').where({ material_id: m.id, movement_type: '561' }).first('doc_number')).doc_number;
@@ -185,5 +185,21 @@ describe('transferência 311 continua a trilha no outro depósito', () => {
       expect.objectContaining({ from: `MATERIAL_DOC:${load}`, to: `MATERIAL_DOC:${tr.doc_number}` }),
       expect.objectContaining({ from: `MATERIAL_DOC:${tr.doc_number}`, to: `MATERIAL_DOC:${gi}` }),
     ]));
+
+    // Segunda venda abastecida pela mesma carga: é "irmã" da primeira e não faz parte da trilha dela.
+    const so2 = (await vendedor.post('/api/sd/sales-orders').set(H).send({
+      customer_id: ids.c1, sales_organization_id: ids.sorg, distribution_channel_id: ids.ch10, division_id: ids.div01, plant_id: ids.cf10,
+      requested_date: plus(2), items: [{ material_id: m.id, quantity: 2, storage_location_id: ids.slb }],
+    })).body.data;
+    const c2 = (await vendedor.post(`/api/sd/sales-orders/${so2.id}/submit`).set(H)).body.data;
+    const d2 = (await almox.post('/api/sd/deliveries').set(H).send({ sales_order_id: so2.id, items: [{ sales_order_item_id: c2.items[0].id, quantity: 2 }] })).body.data;
+    await almox.post(`/api/sd/deliveries/${d2.id}/pick`).set(H).send({ items: [{ delivery_item_id: d2.items[0].id, picked_qty: 2 }] });
+    await almox.post(`/api/sd/deliveries/${d2.id}/post-goods-issue`).set(H);
+
+    const fromSale = nodeKeys((await admin.get(`/api/flow/SALES_ORDER/${so.id}`)).body.data);
+    expect(fromSale).toEqual(expect.arrayContaining([`MATERIAL_DOC:${load}`, `MATERIAL_DOC:${tr.doc_number}`]));
+    expect(fromSale).not.toContain(`SALES_ORDER:${so2.id}`);
+    const fromLoad = nodeKeys((await admin.get(`/api/flow/MATERIAL_DOC/${load}`)).body.data);
+    expect(fromLoad).toEqual(expect.arrayContaining([`SALES_ORDER:${so.id}`, `SALES_ORDER:${so2.id}`])); // a carga abasteceu as duas
   });
 });

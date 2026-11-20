@@ -215,6 +215,8 @@ tr.row-warn td { background: var(--warn-bg); }
   .subnav { display: flex; overflow-x: auto; padding: 0; }
   .subnav-item { white-space: nowrap; border-left: 0; border-bottom: 3px solid transparent; }
   .subnav-item.active { border-bottom-color: var(--primary); }
+  .card-header, .page-header { flex-wrap: wrap; gap: 8px; }
+  .card-header > div { min-width: 0; flex: 1 1 200px; }
 }
 @media (max-width: 480px) {
   .shellbar-title { display: none; }

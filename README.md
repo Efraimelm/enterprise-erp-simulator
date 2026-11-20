@@ -12,15 +12,31 @@ ERP web próprio, de portfólio e para estudo, que **simula** processos empresar
 | Etapa | Conteúdo | Situação |
 | --- | --- | --- |
 | **1. Fundação** | Banco, backend, frontend, login, layout, estrutura organizacional, parâmetros e auditoria | ✅ **Concluída e testada** |
-| **2. Segurança** | Usuários, roles e permissões (44), escopo por empresa/centro, proteções contra escalada de privilégio | ✅ **Concluída e testada** |
+| **2. Segurança** | Usuários, roles e permissões (48), escopo por empresa/centro, proteções contra escalada de privilégio | ✅ **Concluída e testada** |
 | **3. MM** | Materiais, fornecedores, estoque (101/201/311/561/701/702), requisição → pedido → recebimento, inventário e MRP simplificado | ✅ **Concluída e testada** |
 | **4. SD** | Clientes, condições comerciais, pedido de venda com ATP e reserva, entrega com saída 601, faturamento com estorno e contas a receber (simulado) | ✅ **Concluída e testada** |
 | **5. MM + SD** | Trilha de documentos de ponta a ponta (RC → … → pagamento) com FIFO simulado, busca global por número e teste integrado do ciclo completo | ✅ **Concluída e testada** |
 | **6. n8n e IA** | API de integração com chave (só leitura) e OpenAPI/Swagger, idempotência, webhooks assinados com novas tentativas, fluxos n8n testados com o n8n real e assistente de IA só de consulta que cita a fonte | ✅ **Concluída e testada** |
 | **7. BI** | 7 relatórios com a fórmula de cada indicador (estoque, giro, compras, pedidos pendentes, faturamento, contas a receber por vencimento), tela de Relatórios com gráfico e exportação CSV, e pacote Power BI (Power Query + DAX) lendo a API | ✅ **Concluída e testada** |
-| 8. Portfólio | Testes finais, vídeos e apresentação | Próxima |
+| **8. Portfólio** | Histórico de demonstração (6 meses), revisão de acessibilidade e celular, correções achadas na revisão, capturas de tela, roteiro de demonstração e guia de apresentação | ✅ **Concluída e testada** |
 
-O que é **implementado**, **simulado** e **planejado** está detalhado em [docs/progress.md](docs/progress.md).
+O que é **implementado**, **simulado** e **planejado** está detalhado em [docs/progress.md](docs/progress.md) e em [docs/apresentacao.md](docs/apresentacao.md).
+
+**Em números:** 7 migrations · 48 permissões em 10 roles · cerca de 120 rotas de API · 7 relatórios · **195 testes automatizados**, todos aprovados.
+
+## Telas
+
+| Trilha de documentos: do pedido de compra ao pagamento | Relatórios e BI, com a fórmula de cada indicador |
+| --- | --- |
+| ![Fluxo de documentos](docs/img/fluxo-documentos.png) | ![Relatórios](docs/img/relatorios.png) |
+| **Assistente de consulta, que cita a fonte** | **Painel** |
+| ![Assistente](docs/img/assistente.png) | ![Painel](docs/img/painel.png) |
+| **Estoque por documento de material** | **Contas a receber por vencimento (simulado)** |
+| ![Estoque](docs/img/estoque.png) | ![Contas a receber](docs/img/contas-a-receber.png) |
+
+<p align="center"><img src="docs/img/celular-fluxo.png" alt="Trilha de documentos no celular" width="260"></p>
+
+As telas usam o histórico de demonstração (`npm run demo:data`). Os dados são de uma empresa fictícia.
 
 ## Tecnologias
 
@@ -49,6 +65,7 @@ O passo a passo completo, com os erros comuns, está em [docs/setup-windows.md](
 | `npm run db:start` / `npm run db:stop` | Liga e desliga o banco local |
 | `npm test` | Roda os testes automatizados num banco separado (`erp_test`) |
 | `npm run db:reset` | Apaga e recria o banco de desenvolvimento com os dados iniciais |
+| `npm run demo:data` | Gera cerca de 6 meses de histórico (compras, vendas, faturas e pagamentos) para os relatórios e a demonstração |
 
 ## Documentação
 
@@ -70,3 +87,5 @@ O passo a passo completo, com os erros comuns, está em [docs/setup-windows.md](
 | [docs/test-cases.md](docs/test-cases.md) | Casos de teste e cenários de aceitação |
 | [docs/setup-windows.md](docs/setup-windows.md) | Instalação e execução no Windows |
 | [docs/progress.md](docs/progress.md) | Decisões técnicas, o que foi concluído e as pendências |
+| [docs/demo-script.md](docs/demo-script.md) | Roteiro de demonstração (10 minutos e três vídeos curtos) |
+| [docs/apresentacao.md](docs/apresentacao.md) | Como apresentar o projeto: pitch, implementado × simulado, ponte com conceitos SAP e texto para o LinkedIn |

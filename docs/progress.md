@@ -2,7 +2,30 @@
 
 Atualizado a cada etapa. Serve para continuar o projeto em uma nova conversa sem perder o contexto.
 
-## Estado atual: Etapa 7 concluída (19/11/2026)
+## Estado atual: Etapa 8 concluída (19/11/2026). Projeto completo para o portfólio
+
+### Etapa 8: Portfólio (implementado)
+- **Histórico de demonstração** (`npm run demo:data`): cerca de 6 meses e 45 vendas, 44 faturadas, 31 pagamentos, 13 pedidos de compra e títulos vencidos.
+  - Os documentos são criados pela API, com as regras e a auditoria normais, pelo usuário `carga_demo`, que é desativado no final.
+  - Depois, só as datas vão para o passado. Os webhooks ficam pausados durante a carga.
+- **Revisão com dados reais** achou e corrigiu dois defeitos:
+  - agrupamento por categoria nas vendas;
+  - trilha de documentos puxando vendas "irmãs" (linhagem FIFO, D29b).
+  - Os dois ganharam verificação nos testes.
+- **Acessibilidade e celular:** nome completo nos checkboxes de permissão, cabeçalhos que quebram linha e 23 telas sem rolagem horizontal em 375 px.
+- **Material de portfólio:**
+  - 7 capturas de tela no README (`docs/img/`);
+  - [roteiro de demonstração](demo-script.md), com 10 minutos e três vídeos curtos;
+  - [guia de apresentação](apresentacao.md): pitch, implementado × simulado, ponte com os conceitos SAP, perguntas de entrevista e texto para o LinkedIn.
+- Testes: **195**, todos aprovados.
+- **Os vídeos ficam com o autor:** o roteiro está pronto, mas a gravação não é feita pelo sistema.
+
+### Decisões da Etapa 8
+| # | Decisão | Motivo |
+| --- | --- | --- |
+| D43 | Histórico de demonstração pela API, com as datas movidas depois | As regras, a numeração, os saldos e a auditoria são os do sistema. Só a data é simulada, e isso está documentado |
+| D44 | Linhagem pelo FIFO na trilha (D29b) | Mostrar a história do documento, não todo o grafo conectado |
+| D45 | Capturas geradas por script (navegador headless), com um usuário temporário removido no final | Imagens reproduzíveis, sem dados pessoais e sem deixar contas abertas |
 
 ### Etapa 7: BI, relatórios e Power BI (implementado)
 - Desenho e fórmulas em [bi-design.md](bi-design.md).
@@ -200,11 +223,12 @@ Ver D28 a D31 em [integration-design.md](integration-design.md): trilha por cons
 
 ## Pendências e próximos passos
 
-**Etapa 8: Portfólio** (próxima):
-1. Revisão final: acessibilidade (rótulos dos checkboxes), mensagens de erro e telas em celular.
-2. Roteiro de demonstração e dados de exemplo mais ricos (vendas e títulos em vários meses, para os relatórios e o Power BI).
-3. Vídeos curtos, capturas de tela no README e texto para o LinkedIn.
-4. Guia de "como apresentar o projeto" em entrevista: o que é implementado, simulado e planejado.
+**Todas as 8 etapas estão concluídas.** Próximos passos opcionais (evolução, fora do escopo original):
+1. Gravar os vídeos do [roteiro](demo-script.md) e montar o `.pbix` pelo [pacote Power BI](../analytics/README.md).
+2. Hospedar uma demonstração online (ex.: Render ou Railway com MariaDB gerenciado), com dados fictícios e reset diário.
+3. FI simplificado: contabilização da fatura e do pagamento, para ligar o SD ao financeiro.
+4. Lote e validade no MM, substituindo o FIFO simulado por rastreabilidade real.
+5. Chaves de API com escrita (ex.: o n8n criar requisições), com idempotência obrigatória.
 
 Pendências menores:
 - Estornar pagamento (hoje, fatura paga não pode ser estornada).
@@ -213,4 +237,4 @@ Pendências menores:
 
 Pendências menores:
 - O redirecionamento para o login, visto uma vez no teste manual, veio de um logout feito por script durante a navegação. Não se repetiu.
-- Os checkboxes de roles e escopo têm o rótulo certo na tela, mas os leitores de tela anunciam só "on". Melhorar na Etapa 8 (acessibilidade).
+- ~~Checkboxes anunciados só como "on"~~: resolvido na Etapa 8 (nome completo da permissão).

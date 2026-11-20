@@ -50,6 +50,12 @@ npm run dev          # sobe o sistema
 ```
 Para parar: `Ctrl+C` na janela do `npm run dev` e depois `npm run db:stop`.
 
+### Dados de demonstração (opcional)
+```powershell
+npm run demo:data
+```
+Gera cerca de 6 meses de histórico: compras, recebimentos, vendas, faturas e pagamentos, com alguns títulos vencidos e pedidos em aberto. Roda uma vez só (se já rodou, avisa e não faz nada). Todos os documentos passam pela API, com as mesmas regras e a mesma auditoria, em nome do usuário `carga_demo`, que é desativado no final. Depois, só as datas são movidas para o passado. Enquanto a carga roda, os webhooks ficam pausados. Para voltar ao zero: `npm run db:reset`.
+
 ## 4. Integração e IA (opcional)
 
 - **Documentação da API:** com o sistema rodando, abra http://localhost:5173/api/docs (Swagger).

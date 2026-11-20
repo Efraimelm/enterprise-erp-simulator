@@ -123,7 +123,7 @@ function PermissionMatrix({ byModule, value, onChange, readOnly, allowed }) {
                   const locked = allowed && !allowed.has(p.code);
                   return (
                     <label key={p.code} className={`perm perm-check ${on ? 'on' : ''}`} title={locked ? 'Você não possui esta permissão' : p.description}>
-                      <input type="checkbox" checked={on} disabled={locked} onChange={(e) => toggle(p.code, e.target.checked)} /> {action}
+                      <input type="checkbox" checked={on} disabled={locked} aria-label={`${p.code}${p.description ? ` – ${p.description}` : ''}`} onChange={(e) => toggle(p.code, e.target.checked)} /> {action}
                     </label>
                   );
                 })}

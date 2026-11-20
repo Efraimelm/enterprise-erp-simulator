@@ -134,11 +134,11 @@ async function fifoFor(ctx, materialId, slocId) {
 const edge = (from, to, label) => ({ from, to, label });
 
 async function neighbors(req, node, ctx) {
-  const out = []; // { type, id, edge }
+  const out = []; // { type, id, dir, fifo, edge }
   const self = node.key;
-  const add = (type, id, dir, label) => {
+  const add = (type, id, dir, label, fifo = false) => {
     const k = key(type, id);
-    out.push({ type, id, edge: dir === 'out' ? edge(self, k, label) : edge(k, self, label) });
+    out.push({ type, id, dir, fifo, edge: dir === 'out' ? edge(self, k, label) : edge(k, self, label) });
   };
   switch (node.type) {
     case 'PURCHASE_REQ': {
@@ -170,7 +170,7 @@ async function neighbors(req, node, ctx) {
           pairs.set(pk, prev);
         }
       }
-      for (const p of pairs.values()) add('MATERIAL_DOC', p.doc, p.dir, `abasteceu ${qty(p.qty)} ${p.unit} de ${p.material} (FIFO simulado)`);
+      for (const p of pairs.values()) add('MATERIAL_DOC', p.doc, p.dir, `abasteceu ${qty(p.qty)} ${p.unit} de ${p.material} (FIFO simulado)`, true);
       break;
     }
     case 'SALES_ORDER': {
@@ -214,7 +214,14 @@ function visible(req, node) {
   return inScope(req, node.plant_id);
 }
 
-/** Monta o grafo a partir de um documento, em largura, respeitando permissão e escopo. */
+/**
+ * Monta o grafo a partir de um documento, em largura, respeitando permissão e escopo.
+ *
+ * Linhagem pelo FIFO: quem subiu por uma ligação FIFO (da saída para a entrada que a abasteceu) continua
+ * só subindo pelo FIFO, e quem desceu continua só descendo. Sem isso, a trilha de uma venda subiria até a
+ * carga inicial e desceria de novo para TODAS as outras vendas abastecidas por ela (documentos "irmãos",
+ * que não fazem parte da história desta venda). As ligações de documento (pedido, entrega, fatura...) seguem normais.
+ */
 export async function buildFlow(req, rootType, rootId, { limit = 150 } = {}) {
   const root = await loadNode(req, rootType, rootId);
   if (!root) throw notFound('Documento não encontrado.');
@@ -226,11 +233,14 @@ export async function buildFlow(req, rootType, rootId, { limit = 150 } = {}) {
   const edges = new Map();
   const hidden = new Set();
   const queue = [root];
+  const fifoDir = new Map([[root.key, 'both']]); // sentido FIFO permitido a partir de cada nó
   let truncated = false;
 
   while (queue.length) {
     const node = queue.shift();
+    const allowed = fifoDir.get(node.key);
     for (const nb of await neighbors(req, node, ctx)) {
+      if (nb.fifo && allowed !== 'both' && nb.dir !== allowed) continue;
       edges.set(`${nb.edge.from}>${nb.edge.to}`, nb.edge);
       const k = key(nb.type, nb.id);
       if (nodes.has(k) || hidden.has(k)) continue;
@@ -238,6 +248,7 @@ export async function buildFlow(req, rootType, rootId, { limit = 150 } = {}) {
       const loaded = await loadNode(req, nb.type, nb.id);
       if (!visible(req, loaded)) { hidden.add(k); continue; }
       nodes.set(k, loaded);
+      fifoDir.set(k, nb.fifo ? nb.dir : allowed);
       queue.push(loaded);
     }
   }

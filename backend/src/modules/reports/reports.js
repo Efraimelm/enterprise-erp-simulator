@@ -174,7 +174,7 @@ export const REPORTS = {
       const rows = await plants(db('billing_items as i'), req, 'b.plant_id', f)
         .join('billing_documents as b', 'b.id', 'i.billing_document_id').join('materials as m', 'm.id', 'i.material_id')
         .where({ 'b.type': 'INVOICE', 'b.status': 'ACTIVE' }).whereBetween('b.billing_date', [f.from, f.to])
-        .groupBy(db.raw('DATE_FORMAT(b.billing_date, ?)', [fmt]), 'm.category')
+        .groupByRaw('DATE_FORMAT(b.billing_date, ?), m.category', [fmt])
         .select(db.raw('DATE_FORMAT(b.billing_date, ?) as periodo', [fmt]), db.raw("COALESCE(m.category, 'Sem categoria') as categoria"),
           db.raw('COUNT(DISTINCT b.id) as faturas'), db.raw('SUM(i.quantity) as quantidade'), db.raw('SUM(i.net_amount) as liquido'), db.raw('SUM(i.tax_amount) as imposto'))
         .orderBy([{ column: 'periodo' }, { column: 'liquido', order: 'desc' }]);

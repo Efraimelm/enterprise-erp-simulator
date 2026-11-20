@@ -2,7 +2,7 @@
 
 Rodar: `npm test`. Os testes recriam o banco `erp_test` do zero e nunca tocam no `erp_dev`.
 
-## Resultado atual (19/11/2026): **195 testes, 195 aprovados**
+## Resultado atual (19/11/2026, Etapa 8): **195 testes, 195 aprovados**
 
 | Arquivo | Testes | Etapa |
 | --- | --- | --- |
@@ -16,6 +16,18 @@ Rodar: `npm test`. Os testes recriam o banco `erp_test` do zero e nunca tocam no
 | `e2e.test.js` | 11 | 5 |
 | `integration.test.js` | 31 | 6 |
 | `reports.test.js` | 13 | 7 |
+
+## Etapa 8: revisão final
+A revisão com dados de 6 meses achou dois defeitos. Cada um ganhou uma verificação nos testes que já existiam:
+
+| Defeito | Correção | Verificação |
+| --- | --- | --- |
+| Vendas por mês juntavam as categorias numa linha só. O agrupamento do knex ignorava a segunda coluna | `groupByRaw` com período e categoria | `reports.test.js`: venda de outra categoria no mesmo dia. Cada categoria tem a sua linha, por mês e por dia, e os totais de estoque e de títulos foram recalculados à mão |
+| A trilha de uma venda puxava as vendas "irmãs" abastecidas pela mesma carga | Linhagem pelo FIFO (D29b) | `e2e.test.js`: a segunda venda não aparece na trilha da primeira, mas aparece na trilha da carga |
+
+Revisão manual:
+- **Acessibilidade:** os checkboxes de permissão agora são anunciados com o código e a descrição (ex.: "MM.STOCK.READ – Consultar estoque e movimentações").
+- **Celular (375 px):** nenhuma das 23 telas rola na horizontal. Os botões dos cabeçalhos passaram a quebrar linha.
 
 ## Etapa 7: `backend/tests/reports.test.js` (13)
 Os testes rodam num centro novo e isolado, com movimentos de datas conhecidas. Os números esperados foram calculados à mão.
