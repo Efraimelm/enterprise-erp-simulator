@@ -55,6 +55,19 @@ export function buildOpenApi() {
           responses: { 200: { description: 'Indicadores', content: { 'application/json': { schema: { $ref: '#/components/schemas/KpiSummary' } } } } },
         },
       },
+      '/reports': { get: { tags: ['Indicadores'], summary: 'Relatórios de BI disponíveis para a chave (com definição e colunas)', responses: { 200: { description: 'Lista' } } } },
+      '/reports/{name}': {
+        get: {
+          tags: ['Indicadores'], summary: 'Relatório de BI (posição e giro de estoque, compras por fornecedor, pendências, vendas por período, aging)',
+          description: 'Use all=true no Power BI (até 20.000 linhas) ou format=csv (UTF-8 com BOM, separador ;). A resposta traz meta.definition com a fórmula.',
+          parameters: [
+            { name: 'name', in: 'path', required: true, schema: { type: 'string', enum: ['stock-position', 'stock-turnover', 'purchases-by-supplier', 'open-purchase-orders', 'sales-by-period', 'open-sales-orders', 'receivables-aging'] } },
+            q('from', 'Início (AAAA-MM-DD; padrão: 90 dias atrás)'), q('to', 'Fim (AAAA-MM-DD; padrão: hoje)'), q('plant_id', 'Centro', 'integer'),
+            q('group', 'day | month (vendas por período)'), q('all', 'true = todas as linhas'), q('format', 'json | csv'), q('decimal', 'comma | dot (CSV)'),
+          ],
+          responses: { 200: { description: 'Linhas, totais, colunas e meta (com a fórmula)' }, 403: { $ref: '#/components/responses/Forbidden' } },
+        },
+      },
       '/mm/materials': list('Materiais', 'MM.MATERIAL.READ', [q('q', 'Código, descrição ou categoria'), q('status', 'ACTIVE | BLOCKED | INACTIVE'), q('plant_id', 'Materiais estendidos para o centro', 'integer')], 'MM'),
       '/mm/materials/{id}': detail('Material com dados por centro, estoque, fornecedores e histórico', 'MM.MATERIAL.READ', 'MM'),
       '/mm/stock': list('Saldos de estoque (físico, reservado, disponível)', 'MM.STOCK.READ', [q('plant_id', 'Centro', 'integer'), q('material_id', 'Material', 'integer'), q('below_reorder', 'true = só abaixo do ponto de reposição')], 'MM'),

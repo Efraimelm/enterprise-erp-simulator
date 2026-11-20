@@ -2,7 +2,7 @@
 
 Rodar: `npm test`. Os testes recriam o banco `erp_test` do zero e nunca tocam no `erp_dev`.
 
-## Resultado atual (19/11/2026): **182 testes, 182 aprovados**
+## Resultado atual (19/11/2026): **195 testes, 195 aprovados**
 
 | Arquivo | Testes | Etapa |
 | --- | --- | --- |
@@ -15,6 +15,33 @@ Rodar: `npm test`. Os testes recriam o banco `erp_test` do zero e nunca tocam no
 | `sd.test.js` | 28 | 4 |
 | `e2e.test.js` | 11 | 5 |
 | `integration.test.js` | 31 | 6 |
+| `reports.test.js` | 13 | 7 |
+
+## Etapa 7: `backend/tests/reports.test.js` (13)
+Os testes rodam num centro novo e isolado, com movimentos de datas conhecidas. Os números esperados foram calculados à mão.
+
+| Caso | Esperado |
+| --- | --- |
+| Posição de estoque | Valor = físico × preço de referência (610 + 140 = 750). Marca o que está abaixo do ponto de reposição |
+| Giro | Inicial 100, entradas 2, saídas 41, final 61, médio 80,5, giro = 41 / 80,5 |
+| Compras por fornecedor | 2 pedidos, R$ 250 brutos, R$ 220 recebidos (88%), pontualidade 100% |
+| Pedidos de compra pendentes | 30 unidades pendentes, 1 dia de atraso |
+| Vendas por categoria | R$ 1.230 líquidos. A fatura estornada não entra |
+| Vendas por dia | O dia −45 soma R$ 30 líquidos e R$ 35,40 brutos |
+| Pedidos de venda em aberto | 2 unidades, R$ 118 e 2 dias de atraso |
+| Contas a receber por vencimento | A vencer R$ 1.416, 1–30 dias R$ 35,40, total R$ 1.451,40 |
+| CSV | BOM, `;`, vírgula decimal e cabeçalho com os rótulos |
+| `all=true` e paginação | Todas as linhas de uma vez, ou página a página |
+| Chave de API | A chave INTEGRATION_READONLY lê os relatórios (uso do Power BI) |
+| Permissão e escopo | Sem permissão → 403. Fora do escopo → as linhas não aparecem. A lista mostra só os relatórios permitidos |
+| Período | `from` maior que `to`, ou período acima de 366 dias → 400 |
+
+### Teste manual no navegador (Etapa 7)
+Tela **Relatórios e BI**, posição de estoque:
+- 12 linhas, R$ 13.469,50 e 5 materiais abaixo do ponto, com gráfico por categoria.
+- **Exportar CSV**: arquivo `text/csv` com os rótulos em português.
+
+Contas a receber sem títulos: totais zerados e a mensagem "Sem dados".
 
 ## Etapa 6: `backend/tests/integration.test.js` (31)
 | Grupo | Casos |

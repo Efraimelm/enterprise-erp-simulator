@@ -42,7 +42,7 @@ export const navigation = [
   {
     group: 'Integração e análise',
     items: [
-      { label: 'Relatórios e BI', stage: 7 },
+      { label: 'Relatórios e BI', path: '/relatorios', anyOf: ['MM.STOCK.READ', 'MM.PURCHASE_ORDER.READ', 'SD.SALES_ORDER.READ', 'SD.BILLING.READ', 'SD.RECEIVABLE.READ'] },
     ],
   },
 ];
@@ -54,6 +54,6 @@ export const roadmap = [
   { stage: 4, title: 'SD', detail: 'Clientes, preços, pedido de venda, ATP, entrega, faturamento e recebimento', status: 'done' },
   { stage: 5, title: 'Integração MM + SD', detail: 'Estoque compartilhado, reservas, saídas e trilha de documentos', status: 'done' },
   { stage: 6, title: 'n8n e IA', detail: 'API documentada, webhooks, alertas e assistente com fonte', status: 'done' },
-  { stage: 7, title: 'BI', detail: 'Indicadores, relatórios e Power BI', status: 'next' },
-  { stage: 8, title: 'Portfólio', detail: 'Testes finais, documentação, vídeos e apresentação', status: 'planned' },
+  { stage: 7, title: 'BI', detail: 'Indicadores, relatórios e Power BI', status: 'done' },
+  { stage: 8, title: 'Portfólio', detail: 'Testes finais, documentação, vídeos e apresentação', status: 'next' },
 ];

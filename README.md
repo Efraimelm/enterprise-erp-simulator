@@ -5,7 +5,7 @@ ERP web próprio, de portfólio e para estudo, que **simula** processos empresar
 > **Aviso:** este projeto **não é software SAP**, não usa código, marcas ou APIs da SAP e não se conecta a nenhum SAP. Os nomes de conceitos (empresa, centro, depósito, área de vendas) são usados só para fins didáticos.
 
 **Autor:** Efraim Lima · Sistemas de Informação (Unasp-HT) · objetivo de carreira: Consultor SAP
-**Projeto relacionado:** [Copiloto de Operações SAP com n8n](https://github.com/Efraimelm/copiloto-sap-n8n). Ele será ligado a este ERP por uma API própria na Etapa 6.
+**Projeto relacionado:** [Copiloto de Operações SAP com n8n](https://github.com/Efraimelm/copiloto-sap-n8n). Ele se liga a este ERP pela API própria (Etapa 6).
 
 ## Situação atual
 
@@ -17,8 +17,8 @@ ERP web próprio, de portfólio e para estudo, que **simula** processos empresar
 | **4. SD** | Clientes, condições comerciais, pedido de venda com ATP e reserva, entrega com saída 601, faturamento com estorno e contas a receber (simulado) | ✅ **Concluída e testada** |
 | **5. MM + SD** | Trilha de documentos de ponta a ponta (RC → … → pagamento) com FIFO simulado, busca global por número e teste integrado do ciclo completo | ✅ **Concluída e testada** |
 | **6. n8n e IA** | API de integração com chave (só leitura) e OpenAPI/Swagger, idempotência, webhooks assinados com novas tentativas, fluxos n8n testados com o n8n real e assistente de IA só de consulta que cita a fonte | ✅ **Concluída e testada** |
-| 7. BI | KPIs, relatórios e Power BI | Próxima (API de KPIs já pronta) |
-| 8. Portfólio | Testes finais, vídeos e apresentação | Planejada |
+| **7. BI** | 7 relatórios com a fórmula de cada indicador (estoque, giro, compras, pedidos pendentes, faturamento, contas a receber por vencimento), tela de Relatórios com gráfico e exportação CSV, e pacote Power BI (Power Query + DAX) lendo a API | ✅ **Concluída e testada** |
+| 8. Portfólio | Testes finais, vídeos e apresentação | Próxima |
 
 O que é **implementado**, **simulado** e **planejado** está detalhado em [docs/progress.md](docs/progress.md).
 
@@ -62,6 +62,8 @@ O passo a passo completo, com os erros comuns, está em [docs/setup-windows.md](
 | [docs/sd-design.md](docs/sd-design.md) | Módulo SD: preço, ATP e reserva, entrega, faturamento, estorno e contas a receber |
 | [docs/integration-design.md](docs/integration-design.md) | Integração MM + SD: trilha de documentos, FIFO simulado e busca global |
 | [docs/integration-api-design.md](docs/integration-api-design.md) | API de integração, chaves, idempotência, webhooks, n8n e assistente de IA |
+| [docs/bi-design.md](docs/bi-design.md) | Relatórios e BI: fórmulas de cada indicador e decisões |
+| [analytics/](analytics/) | Pacote Power BI: consultas Power Query, medidas DAX e passo a passo |
 | [integrations/n8n/](integrations/n8n/) | Fluxos n8n (eventos e resumo diário) e passo a passo |
 | `/api/docs` | Documentação OpenAPI/Swagger da API (com o sistema rodando) |
 | [docs/api-documentation.md](docs/api-documentation.md) | Endpoints da API |

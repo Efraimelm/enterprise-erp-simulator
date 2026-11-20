@@ -2,6 +2,26 @@
 
 > A partir da Etapa 6, a referência completa da **API de integração** (chave de API, só leitura, webhooks) está no **Swagger**, em `/api/docs`, e na especificação `/api/openapi.json`. Este arquivo continua documentando as rotas usadas pela interface, com sessão de usuário.
 
+## Relatórios e BI (Etapa 7)
+
+Fórmulas em [bi-design.md](bi-design.md). Aceitam sessão de usuário **ou** chave de API (somente leitura). Respeitam o escopo por centro.
+
+| Método | Rota | Permissão | Descrição |
+| --- | --- | --- | --- |
+| GET | `/reports` | logado | Relatórios que o usuário pode ver: `name`, `title`, `group`, `period`, `definition` |
+| GET | `/reports/:name` | a do relatório (ex.: MM.STOCK.READ, SD.BILLING.READ, SD.RECEIVABLE.READ) | `{ data, totals, columns, meta: { definition, period, scope, generated_at }, page, pageSize, total }` |
+
+Nomes: `stock-position`, `stock-turnover`, `purchases-by-supplier`, `open-purchase-orders`, `sales-by-period`, `open-sales-orders`, `receivables-aging`.
+
+Parâmetros:
+- `from` e `to`: só nos relatórios com período. O padrão são os últimos 90 dias, e o máximo é 366 dias.
+- `plant_id`: filtra um centro.
+- `group`: `month` ou `day`, só em vendas.
+- `page` e `pageSize`.
+- `all=true`: devolve tudo, até 20.000 linhas, como faz o Power BI.
+- `format=csv`: devolve um arquivo para o Excel, com BOM, separador `;` e vírgula decimal. `decimal=dot` usa ponto decimal.
+- Período inválido → 400.
+
 ## Integração, KPIs e assistente (Etapa 6)
 | Método | Rota | Permissão | Descrição |
 | --- | --- | --- | --- |

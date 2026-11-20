@@ -25,6 +25,7 @@ import Receivables from './pages/sd/Receivables.jsx';
 import DocumentFlow from './pages/DocumentFlow.jsx';
 import Integrations from './pages/Integrations.jsx';
 import Assistant from './pages/Assistant.jsx';
+import Reports from './pages/Reports.jsx';
 
 function RequireAuth({ children }) {
   const { user, loading } = useAuth();
@@ -63,6 +64,7 @@ export default function App() {
         <Route path="fluxo" element={<DocumentFlow />} />
         <Route path="admin/integracoes" element={<Integrations />} />
         <Route path="assistente" element={<Assistant />} />
+        <Route path="relatorios" element={<Reports />} />
         <Route path="*" element={<div className="empty">Página não encontrada.</div>} />
       </Route>
     </Routes>

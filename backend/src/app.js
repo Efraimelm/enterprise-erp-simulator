@@ -30,6 +30,7 @@ import { kpisRouter } from './modules/integration/kpis.js';
 import { integrationRouter } from './modules/integration/admin.js';
 import { openApiRouter } from './modules/integration/openapi.js';
 import { assistantRouter } from './modules/assistant/routes.js';
+import { reportsRouter } from './modules/reports/routes.js';
 
 export function createApp({ loginRateLimit = config.login.rateLimit, apiKeyRateLimit = config.integration.apiKeyRateLimit } = {}) {
   const app = express();
@@ -73,6 +74,7 @@ export function createApp({ loginRateLimit = config.login.rateLimit, apiKeyRateL
   app.use('/api/kpis', kpisRouter);
   app.use('/api/integration', integrationRouter);
   app.use('/api/assistant', assistantRouter);
+  app.use('/api/reports', reportsRouter);
 
   app.use('/api', (req, res) => res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Rota não encontrada.' } }));
   app.use(errorHandler);

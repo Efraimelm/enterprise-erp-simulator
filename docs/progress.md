@@ -2,7 +2,35 @@
 
 Atualizado a cada etapa. Serve para continuar o projeto em uma nova conversa sem perder o contexto.
 
-## Estado atual: Etapa 6 concluída (19/11/2026)
+## Estado atual: Etapa 7 concluída (19/11/2026)
+
+### Etapa 7: BI, relatórios e Power BI (implementado)
+- Desenho e fórmulas em [bi-design.md](bi-design.md).
+- **API `/api/reports`**: 7 relatórios calculados no backend.
+  - Cada resposta traz a fórmula (`meta.definition`), os totais e o escopo aplicado.
+  - Aceita sessão ou chave somente leitura, `all=true` e CSV para o Excel.
+  - Estoque: posição e valor (simulado), e giro com cobertura.
+  - Compras: por fornecedor, com recebido e pontualidade, e pedidos pendentes e atrasados.
+  - Vendas: faturamento por período e categoria, e pedidos em aberto.
+  - Financeiro: contas a receber por faixa de vencimento.
+- **Tela Relatórios e BI**: filtros, indicadores, gráfico de barras sem biblioteca, tabela paginada e exportação CSV.
+- **Pacote Power BI** em [analytics/](../analytics/):
+  - função Power Query que lê a API com a chave;
+  - 8 consultas tipadas;
+  - medidas DAX com as mesmas fórmulas;
+  - páginas sugeridas.
+
+  Não há `.pbix`, que é binário. O painel é montado no Power BI Desktop pelo passo a passo.
+- Testes: 13 novos, **195 no total**, todos aprovados. A tela foi testada no navegador.
+- **Simulado**: valor do estoque pelo preço de referência (sem custeio) e contas a receber sem integração bancária.
+
+### Decisões da Etapa 7
+| # | Decisão | Motivo |
+| --- | --- | --- |
+| D39 | Relatórios calculados no backend, com a fórmula na resposta | O ERP, o n8n, a IA e o Power BI mostram o mesmo número, rastreável até a regra |
+| D40 | Estoque avaliado pelo preço de referência | Não há custeio (FI/CO). Fica explícito que é uma avaliação simulada |
+| D41 | Vendas pelo faturamento ativo (faturas estornadas saem) | Sem dupla contagem |
+| D42 | Power BI pela API com chave somente leitura, sem acesso ao banco | Mantém permissões, escopo e log de acesso |
 
 ### Etapa 6: API, webhooks, n8n e IA (implementado)
 - Desenho em [integration-api-design.md](integration-api-design.md). A9 decidida: a IA usa a sessão de quem pergunta.
@@ -172,10 +200,11 @@ Ver D28 a D31 em [integration-design.md](integration-design.md): trilha por cons
 
 ## Pendências e próximos passos
 
-**Etapa 7: BI** (próxima). A API `GET /api/kpis/summary`, com as fórmulas, já existe. Falta:
-1. Visões tabulares para o Power BI: estoque por material e centro, compras por fornecedor, vendas por período e categoria, títulos. Paginadas e lidas com a chave INTEGRATION_READONLY.
-2. Tela de **Relatórios** no ERP: giro de estoque, pedidos pendentes e atrasados, faturamento por período, contas a receber por vencimento. Exportação em CSV.
-3. Arquivo `.pbix` (ou o passo a passo do Power BI Desktop) em `analytics/`, com as medidas DAX documentadas.
+**Etapa 8: Portfólio** (próxima):
+1. Revisão final: acessibilidade (rótulos dos checkboxes), mensagens de erro e telas em celular.
+2. Roteiro de demonstração e dados de exemplo mais ricos (vendas e títulos em vários meses, para os relatórios e o Power BI).
+3. Vídeos curtos, capturas de tela no README e texto para o LinkedIn.
+4. Guia de "como apresentar o projeto" em entrevista: o que é implementado, simulado e planejado.
 
 Pendências menores:
 - Estornar pagamento (hoje, fatura paga não pode ser estornada).

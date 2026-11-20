@@ -1,0 +1,49 @@
+// Medidas DAX do painel do Enterprise ERP Simulator.
+// As fórmulas são AS MESMAS da API (/api/reports, campo meta.definition) e de docs/bi-design.md.
+// Crie uma tabela vazia "Medidas" (Inserir dados → só o nome) e adicione cada medida nela.
+
+// ───────────── Estoque ─────────────
+Valor do estoque (simulado) = SUM ( Estoque[valor] )                       // físico × preço de referência
+Disponível = SUM ( Estoque[disponivel] )
+Reservado = SUM ( Estoque[reservado] )
+% reservado = DIVIDE ( [Reservado], SUM ( Estoque[fisico] ) )
+Materiais abaixo do ponto =
+    CALCULATE (
+        DISTINCTCOUNT ( Estoque[material] ),
+        Estoque[abaixo_do_ponto] = TRUE ()
+    )
+
+// ───────────── Giro ─────────────
+Saídas no período = SUM ( Giro[saidas] )
+Estoque médio = SUM ( Giro[estoque_medio] )
+Giro = DIVIDE ( [Saídas no período], [Estoque médio] )                     // saídas / médio
+Cobertura (dias) =
+    VAR Dias = 90                                                           // mesmo período da consulta Giro
+    RETURN DIVIDE ( SUM ( Giro[estoque_final] ), DIVIDE ( [Saídas no período], Dias ) )
+
+// ───────────── Compras ─────────────
+Valor comprado = SUM ( Compras[valor_bruto] )
+Valor recebido = SUM ( Compras[valor_recebido] )
+% recebido = DIVIDE ( [Valor recebido], [Valor comprado] )
+Pontualidade de fornecedores = DIVIDE ( SUM ( Compras[no_prazo] ), SUM ( Compras[pedidos_recebidos] ) )
+Pedidos de compra atrasados = CALCULATE ( COUNTROWS ( ComprasPendentes ), ComprasPendentes[atrasado] = TRUE () )
+Valor pendente de compra = SUM ( ComprasPendentes[valor_pendente] )
+
+// ───────────── Vendas ─────────────
+// Relacione Vendas[periodo] → Calendario[Data] (muitos para um).
+Faturamento líquido = SUM ( Vendas[liquido] )
+Faturamento bruto = SUM ( Vendas[bruto] )
+Impostos (simulados) = SUM ( Vendas[imposto] )
+Faturamento mês anterior = CALCULATE ( [Faturamento líquido], DATEADD ( Calendario[Data], -1, MONTH ) )
+Variação vs mês anterior = DIVIDE ( [Faturamento líquido] - [Faturamento mês anterior], [Faturamento mês anterior] )
+Participação da categoria = DIVIDE ( [Faturamento líquido], CALCULATE ( [Faturamento líquido], ALL ( Vendas[categoria] ) ) )
+Pedidos de venda em aberto = COUNTROWS ( VendasEmAberto )
+Valor a entregar = SUM ( VendasEmAberto[valor_pendente] )
+Pedidos de venda atrasados = CALCULATE ( COUNTROWS ( VendasEmAberto ), VendasEmAberto[dias_de_atraso] > 0 )
+
+// ───────────── Contas a receber (simulado) ─────────────
+Total a receber = SUM ( ContasAReceber[total] )
+A vencer = SUM ( ContasAReceber[a_vencer] )
+Vencido = [Total a receber] - [A vencer]                                    // 1–30 + 31–60 + 61–90 + > 90
+% vencido = DIVIDE ( [Vencido], [Total a receber] )
+Vencido acima de 60 dias = SUM ( ContasAReceber[d61_90] ) + SUM ( ContasAReceber[acima_90] )
